@@ -85,6 +85,8 @@ h1 { margin: 0; color: #202a39; font-size: 24px; letter-spacing: -.05em; }
 .sidebar-bottom small { margin-top: 3px; color: #919aa7; font-size: 10px; }
 .dashboard-main { width: min(100%, 1280px); margin: 0 auto; padding: 33px clamp(22px, 4vw, 54px) 40px; }
 .dashboard-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 23px; border-bottom: 1px solid #e6eaf0; }
+.dashboard-account { display: flex; align-items: center; gap: 12px; }
+.dashboard-username { color: #566276; font-size: 11px; font-weight: 650; }
 .dashboard-header .eyebrow { margin-bottom: 5px; font-size: 9px; }
 .dashboard-header h1 { font-size: 24px; }
 .logout-button, .secondary-button { min-height: 36px; padding: 0 13px; border: 1px solid #e1e5ec; border-radius: 7px; color: #697486; background: #fff; font-size: 11px; }

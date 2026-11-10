@@ -15,7 +15,21 @@
           <span class="brand-mark" aria-hidden="true">K</span>
           <span>KONE <span class="brand-light">SEOUL EDU</span></span>
         </a>
-        <span class="header-label">상담 지원 FAQ</span>
+        <div class="header-actions">
+          <span class="header-label">상담 지원 FAQ</span>
+          <button id="header-auth-action" class="header-login" type="button">로그인</button>
+          <div id="account-menu" class="account-menu" hidden>
+            <button id="account-menu-trigger" class="account-trigger" type="button" aria-expanded="false" aria-controls="account-menu-panel">
+              <span class="account-avatar" aria-hidden="true">?</span>
+              <span id="account-username">사용자</span>
+              <span class="account-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div id="account-menu-panel" class="account-menu-panel" hidden>
+              <span id="account-role" class="account-role"></span>
+              <a id="admin-page-link" href="admin.html" hidden>관리자 페이지</a>
+            </div>
+          </div>
+        </div>
       </header>
 
       <main>

@@ -1,6 +1,7 @@
 /* 로그인 시안과 임시 관리자 회원 관리 화면의 입력·목록 상태를 관리합니다. */
 const description = document.querySelector("#auth-description");
 const demoAdmin = { username: "test", password: "1111" };
+const AUTH_SESSION_KEY = "faq-search-session";
 let members = [
   { id: 1, name: "김민준", username: "minjun.kim", email: "minjun@example.com", role: "상담원", status: "사용 중" },
   { id: 2, name: "이서연", username: "seoyeon.lee", email: "seoyeon@example.com", role: "상담원", status: "사용 중" },
@@ -46,16 +47,14 @@ document.querySelector("#admin-login-form")?.addEventListener("submit", (event) 
     showMessage("#admin-message", "아이디 또는 비밀번호를 확인하세요.");
     return;
   }
-  document.querySelector("#admin-login-view").hidden = true;
-  document.querySelector("#admin-dashboard").hidden = false;
-  renderMembers();
+  const session = { username: demoAdmin.username, role: "admin" };
+  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+  showAdminDashboard(session);
 });
 
 document.querySelector("#admin-logout")?.addEventListener("click", () => {
-  document.querySelector("#admin-dashboard").hidden = true;
-  document.querySelector("#admin-login-view").hidden = false;
-  document.querySelector("#admin-login-form").reset();
-  showMessage("#admin-message", "");
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+  window.location.href = "login.html";
 });
 
 document.querySelector("#member-search")?.addEventListener("input", renderMembers);
@@ -159,6 +158,24 @@ function openMemberDialog(member = null) {
 
 function closeMemberDialog() {
   document.querySelector("#member-dialog")?.close();
+}
+
+/** 임시 관리자 세션이 있으면 관리자 대시보드를 표시합니다. */
+function showAdminDashboard(session) {
+  const loginView = document.querySelector("#admin-login-view");
+  const dashboard = document.querySelector("#admin-dashboard");
+  if (!loginView || !dashboard || session?.role !== "admin") return;
+  loginView.hidden = true;
+  dashboard.hidden = false;
+  document.querySelector("#dashboard-username").textContent = session.username;
+  renderMembers();
+}
+
+try {
+  const session = JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) ?? "null");
+  showAdminDashboard(session);
+} catch {
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
 }
 
 /** 현재는 서버가 연결되지 않았음을 폼 아래에 안내합니다. */
