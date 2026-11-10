@@ -70,7 +70,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .faq-nav-root-label { display: inline; }
 .faq-nav-link:hover, .faq-nav-submenu a:hover { color: var(--blue); background: #f5f7fb; }
 .faq-nav-link[aria-current="page"], .faq-nav-submenu a[aria-current="page"] { color: #315fc7; background: #eff4ff; font-weight: 700; }
-.faq-nav-icon { display: block; width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.faq-nav-icon { position: relative; display: block; width: 18px; height: 18px; flex: none; color: currentColor; }
+.faq-search-icon::before { position: absolute; top: 1px; left: 1px; width: 10px; height: 10px; border: 1.6px solid currentColor; border-radius: 50%; content: ""; }
+.faq-search-icon::after { position: absolute; top: 12px; left: 12px; width: 6px; height: 1.6px; border-radius: 1px; background: currentColor; content: ""; transform: rotate(45deg); transform-origin: left center; }
+.faq-book-icon { width: 14px; height: 16px; margin: 0 2px; border: 1.5px solid currentColor; border-radius: 2px; }
+.faq-book-icon::before { position: absolute; top: 0; bottom: 0; left: 3px; border-left: 1px solid currentColor; content: ""; }
+.faq-book-icon::after { position: absolute; top: 4px; left: 6px; width: 5px; height: 1px; background: currentColor; box-shadow: 0 3px currentColor; content: ""; }
 .faq-nav-submenu { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 5px 10px; padding-left: 9px; border-left: 1px solid #e7ebf1; }
 .faq-nav-submenu a { min-height: 34px; padding-left: 10px; color: #7a8595; font-size: 11px; }
 .faq-nav-submenu[hidden] { display: none; }
