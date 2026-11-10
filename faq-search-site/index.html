@@ -35,8 +35,13 @@
       <main>
         <section class="hero" aria-labelledby="page-title">
           <p class="eyebrow">빠르게 찾고, 정확하게 안내하세요</p>
-          <h1 id="page-title">무엇을 도와드릴까요?</h1>
-          <p class="hero-copy">궁금한 내용을 검색하거나 구분과 주제를 선택해 보세요.</p>
+          <div class="hero-title-row">
+            <h1 id="page-title">무엇을 도와드릴까요?</h1>
+            <details class="help-tip">
+              <summary aria-label="검색 사용 도움말">?</summary>
+              <span class="help-tip-content">검색어를 입력하거나 구분과 주제를 선택해 FAQ를 찾아보세요.</span>
+            </details>
+          </div>
 
           <form class="search-form" role="search">
             <label class="sr-only" for="search-input">FAQ 검색어</label>
@@ -83,6 +88,7 @@
       <footer class="site-footer">
         <span>KONE SeoulEdu</span>
         <span>상담 업무를 위한 FAQ 검색</span>
+        <span>개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></span>
       </footer>
     </div>
   </body>

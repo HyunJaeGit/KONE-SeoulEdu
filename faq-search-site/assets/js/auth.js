@@ -2,15 +2,17 @@
 const description = document.querySelector("#auth-description");
 const demoAdmin = { username: "test", password: "1111" };
 const AUTH_SESSION_KEY = "faq-search-session";
+let loginMode = "user";
 let members = [
-  { id: 1, name: "김민준", username: "minjun.kim", email: "minjun@example.com", role: "상담원", status: "사용 중" },
-  { id: 2, name: "이서연", username: "seoyeon.lee", email: "seoyeon@example.com", role: "상담원", status: "사용 중" },
-  { id: 3, name: "박지우", username: "jiwoo.park", email: "jiwoo@example.com", role: "상담원", status: "사용 중지" },
+  { id: 1, name: "김민준", username: "minjun.kim", password: "demo1", role: "상담원" },
+  { id: 2, name: "이서연", username: "seoyeon.lee", password: "demo2", role: "상담원" },
+  { id: 3, name: "박지우", username: "jiwoo.park", password: "demo3", role: "상담원" },
 ];
 
 /** 일반·관리자 로그인 모드의 선택 상태를 전환합니다. */
 document.querySelectorAll("[data-mode]").forEach((button) => {
   button.addEventListener("click", () => {
+    loginMode = button.dataset.mode;
     document.querySelectorAll("[data-mode]").forEach((modeButton) => {
       const isActive = modeButton === button;
       modeButton.classList.toggle("is-active", isActive);
@@ -37,7 +39,17 @@ document.querySelectorAll("[data-toggle-password]").forEach((button) => {
 
 document.querySelector("#login-form")?.addEventListener("submit", (event) => {
   event.preventDefault();
-  showMessage("#login-message", "로그인은 인증 서버 연결 후 사용할 수 있습니다.");
+  const form = new FormData(event.currentTarget);
+  if (loginMode !== "admin") {
+    showMessage("#login-message", "일반 사용자 로그인은 계정 저장소 연결 후 사용할 수 있습니다.");
+    return;
+  }
+  if (form.get("username") !== demoAdmin.username || form.get("password") !== demoAdmin.password) {
+    showMessage("#login-message", "아이디 또는 비밀번호를 확인하세요.");
+    return;
+  }
+  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: demoAdmin.username, role: "admin" }));
+  window.location.href = "index.html";
 });
 
 document.querySelector("#admin-login-form")?.addEventListener("submit", (event) => {
@@ -70,19 +82,20 @@ document.querySelector("#member-form")?.addEventListener("submit", (event) => {
   const form = new FormData(event.currentTarget);
   const id = Number(form.get("id"));
   const username = String(form.get("username")).trim();
+  const password = String(form.get("password")).trim();
   const duplicate = members.some((member) => member.username.toLowerCase() === username.toLowerCase() && member.id !== id);
   if (duplicate) {
     showMessage("#member-form-message", "이미 사용 중인 아이디입니다.");
     return;
   }
 
+  const existingMember = members.find((current) => current.id === id);
   const member = {
     id: id || Date.now(),
     name: String(form.get("name")).trim(),
     username,
-    email: String(form.get("email")).trim(),
-    role: String(form.get("role")),
-    status: String(form.get("status")),
+    password: password || existingMember?.password || "",
+    role: "상담원",
   };
   if (id) members = members.map((current) => current.id === id ? member : current);
   else members = [member, ...members];
@@ -95,13 +108,11 @@ function renderMembers() {
   const body = document.querySelector("#member-rows");
   if (!body) return;
   const query = document.querySelector("#member-search").value.trim().toLocaleLowerCase("ko-KR");
-  const filtered = members.filter((member) => `${member.name} ${member.username} ${member.email}`.toLocaleLowerCase("ko-KR").includes(query));
+  const filtered = members.filter((member) => `${member.name} ${member.username}`.toLocaleLowerCase("ko-KR").includes(query));
   body.replaceChildren(...filtered.map(createMemberRow));
   document.querySelector("#member-empty").hidden = filtered.length > 0;
   document.querySelector("#members-summary").textContent = `전체 ${members.length}명 중 ${filtered.length}명 표시`;
   document.querySelector("#total-count").textContent = String(members.length);
-  document.querySelector("#active-count").textContent = String(members.filter((member) => member.status === "사용 중").length);
-  document.querySelector("#inactive-count").textContent = String(members.filter((member) => member.status === "사용 중지").length);
 }
 
 function createMemberRow(member) {
@@ -115,18 +126,11 @@ function createMemberRow(member) {
   username.textContent = member.username;
   identity.append(name, username);
 
-  const email = document.createElement("td");
-  email.textContent = member.email || "—";
   const roleCell = document.createElement("td");
   const role = document.createElement("span");
   role.className = "role-chip";
-  role.textContent = member.role;
+  role.textContent = "상담원";
   roleCell.append(role);
-  const statusCell = document.createElement("td");
-  const status = document.createElement("span");
-  status.className = `status-chip ${member.status === "사용 중" ? "active" : "inactive"}`;
-  status.textContent = member.status;
-  statusCell.append(status);
   const actionCell = document.createElement("td");
   const edit = document.createElement("button");
   edit.type = "button";
@@ -134,9 +138,22 @@ function createMemberRow(member) {
   edit.textContent = "수정";
   edit.setAttribute("aria-label", `${member.name} 회원 정보 수정`);
   edit.addEventListener("click", () => openMemberDialog(member));
-  actionCell.append(edit);
-  row.append(identity, email, roleCell, statusCell, actionCell);
+  const remove = document.createElement("button");
+  remove.type = "button";
+  remove.className = "delete-member";
+  remove.textContent = "삭제";
+  remove.setAttribute("aria-label", `${member.name} 회원 계정 삭제`);
+  remove.addEventListener("click", () => deleteMember(member));
+  actionCell.append(edit, remove);
+  row.append(identity, roleCell, actionCell);
   return row;
+}
+
+/** 삭제 확인 후 시연 회원 목록에서 계정을 제거합니다. */
+function deleteMember(member) {
+  if (!window.confirm(`${member.name} (${member.username}) 계정을 삭제할까요?`)) return;
+  members = members.filter((current) => current.id !== member.id);
+  renderMembers();
 }
 
 /** 신규 또는 기존 회원 정보를 입력하는 다이얼로그를 엽니다. */
@@ -148,9 +165,10 @@ function openMemberDialog(member = null) {
   document.querySelector("#member-name").value = member?.name ?? "";
   document.querySelector("#member-username").value = member?.username ?? "";
   document.querySelector("#member-username").readOnly = Boolean(member);
-  document.querySelector("#member-email").value = member?.email ?? "";
-  document.querySelector("#member-role").value = member?.role ?? "상담원";
-  document.querySelector("#member-status").value = member?.status ?? "사용 중";
+  const passwordInput = document.querySelector("#member-password");
+  passwordInput.value = "";
+  passwordInput.required = !member;
+  passwordInput.placeholder = member ? "변경할 비밀번호 (4자 이상)" : "4자 이상 입력";
   showMessage("#member-form-message", "");
   document.querySelector("#member-dialog").showModal();
   document.querySelector("#member-name").focus();

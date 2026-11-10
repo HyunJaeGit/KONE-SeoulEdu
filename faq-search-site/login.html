@@ -18,8 +18,13 @@
       <section class="auth-card" aria-labelledby="auth-title">
         <div class="auth-heading">
           <p class="eyebrow">상담 지원 FAQ</p>
-          <h1 id="auth-title">다시 만나 반갑습니다</h1>
-          <p id="auth-description">계정 정보를 입력해 로그인하세요.</p>
+          <div class="auth-title-with-help">
+            <h1 id="auth-title">다시 만나 반갑습니다</h1>
+            <details class="help-tip">
+              <summary aria-label="로그인 도움말">?</summary>
+              <span class="help-tip-content" id="auth-description">계정 정보를 입력해 로그인하세요.</span>
+            </details>
+          </div>
         </div>
 
         <div class="mode-switch" role="group" aria-label="로그인 유형">
@@ -42,11 +47,20 @@
         </form>
 
         <div class="auth-divider"><span>계정 관리</span></div>
-        <p class="account-note">계정은 관리자만 생성할 수 있습니다. 계정 발급이 필요하면 담당 관리자에게 문의하세요.</p>
+        <div class="account-note-row">
+          <span>계정 발급 안내</span>
+          <details class="help-tip">
+            <summary aria-label="계정 발급 안내">?</summary>
+            <span class="help-tip-content">계정은 관리자만 생성할 수 있습니다. 계정 발급이 필요하면 담당 관리자에게 문의하세요.</span>
+          </details>
+        </div>
         <a class="admin-link" href="admin.html">관리자 계정 관리 <span aria-hidden="true">→</span></a>
       </section>
 
-      <p class="auth-footer">© KONE SeoulEdu · 내부 상담 지원용</p>
+      <footer class="auth-footer">
+        <span>© KONE SeoulEdu · 내부 상담 지원용</span>
+        <span>개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></span>
+      </footer>
     </main>
   </body>
 </html>
