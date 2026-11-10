@@ -4,17 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7f8fa">
-    <title>로그인 | KONE SeoulEdu FAQ</title>
+    <title>로그인 | K-ONE SeoulEdu FAQ</title>
+    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/auth.css">
+    <script type="module" src="assets/js/components.js"></script>
     <script type="module" src="assets/js/auth.js"></script>
   </head>
-  <body>
+  <body class="login-page" data-page="login">
+    <div data-include="components/header.html"></div>
     <main class="auth-shell">
-      <a class="auth-brand" href="./login.html" aria-label="KONE SeoulEdu 로그인">
-        <span class="brand-mark" aria-hidden="true">K</span>
-        <span>KONE <span class="brand-light">SEOUL EDU</span></span>
-      </a>
-
       <section class="auth-card" aria-labelledby="auth-title">
         <div class="auth-heading">
           <p class="eyebrow">상담 지원 FAQ</p>
@@ -57,10 +55,7 @@
         <a class="admin-link" href="admin.html">관리자 계정 관리 <span aria-hidden="true">→</span></a>
       </section>
 
-      <footer class="auth-footer">
-        <span>© KONE SeoulEdu · 내부 상담 지원용</span>
-        <span>개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></span>
-      </footer>
     </main>
+    <div data-include="components/footer.html"></div>
   </body>
 </html>

@@ -133,10 +133,13 @@ function createFaqCard(faq, expandedIds) {
   const title = document.createElement("span");
   title.className = "faq-title";
   title.textContent = faq.title;
-  const chevron = document.createElement("span");
+  const chevron = document.createElement("img");
   chevron.className = "faq-chevron";
+  chevron.src = "assets/img/chevron-down.svg";
+  chevron.alt = "";
   chevron.setAttribute("aria-hidden", "true");
-  chevron.textContent = "⌄";
+  chevron.width = 16;
+  chevron.height = 16;
   button.append(id, title, chevron);
   card.append(button);
 

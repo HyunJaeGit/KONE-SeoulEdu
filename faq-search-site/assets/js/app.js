@@ -15,7 +15,6 @@ const state = {
 
 let searchTimer;
 let composing = false;
-const AUTH_SESSION_KEY = "faq-search-session";
 
 /** 시작 시 URL 상태를 복원하고 정적 페이지 UI를 연결합니다. */
 function initialize() {
@@ -50,55 +49,8 @@ function initialize() {
   input.addEventListener("compositionend", () => { composing = false; scheduleSearch(input.value); });
   input.addEventListener("input", () => { if (!composing) scheduleSearch(input.value); });
   window.addEventListener("popstate", restoreUrlState);
-  initializeAccountMenu();
   updateTopics();
   loadFaqs();
-}
-
-/** 로그인 상태에 맞춰 상단 계정 메뉴와 통합 로그인·로그아웃 버튼을 표시합니다. */
-function initializeAccountMenu() {
-  const session = readAuthSession();
-  const loginAction = document.querySelector("#header-auth-action");
-  const accountMenu = document.querySelector("#account-menu");
-  const trigger = document.querySelector("#account-menu-trigger");
-  const panel = document.querySelector("#account-menu-panel");
-  const adminLink = document.querySelector("#admin-page-link");
-
-  accountMenu.hidden = !session;
-  loginAction.textContent = session ? "로그아웃" : "로그인";
-  document.querySelector("#account-username").textContent = session?.username ?? "";
-  document.querySelector("#account-menu-trigger .account-avatar").textContent = (session?.username?.[0] ?? "?").toLocaleUpperCase("ko-KR");
-  document.querySelector("#account-role").textContent = session?.role === "admin" ? "관리자 계정" : "일반 사용자";
-  adminLink.hidden = session?.role !== "admin";
-
-  loginAction.addEventListener("click", () => {
-    if (!readAuthSession()) {
-      window.location.href = "login.html";
-      return;
-    }
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
-    window.location.href = "login.html";
-  });
-  trigger.addEventListener("click", () => {
-    const expanded = trigger.getAttribute("aria-expanded") === "true";
-    trigger.setAttribute("aria-expanded", String(!expanded));
-    panel.hidden = expanded;
-  });
-  document.addEventListener("click", (event) => {
-    if (!accountMenu.contains(event.target)) {
-      trigger.setAttribute("aria-expanded", "false");
-      panel.hidden = true;
-    }
-  });
-}
-
-function readAuthSession() {
-  try {
-    const session = JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) ?? "null");
-    return session && typeof session.username === "string" ? session : null;
-  } catch {
-    return null;
-  }
 }
 
 /** FAQ JSON 연결 전에는 준비 상태를 유지하고, 연결 오류는 재시도할 수 있게 합니다. */
@@ -219,4 +171,4 @@ function render() {
   });
 }
 
-initialize();
+window.siteShellReady.then(initialize).catch(initialize);

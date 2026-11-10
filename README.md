@@ -1,4 +1,4 @@
-# KONE-SeoulEdu
+# K-ONE SeoulEdu
 
 ## FAQ 검색 사이트
 
@@ -8,18 +8,22 @@ FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이
 
 - `faq-search-site/login.html`: 일반·관리자 로그인 화면
 - `faq-search-site/admin.html`: 임시 관리자 로그인과 회원 조회·개설·수정·삭제 화면
+- `faq-search-site/faq.html`: 좌측 FAQ 메뉴에서 대분류별로 탐색하는 화면
+- FAQ 좌측 메뉴: 검색과 FAQ 분리, FAQ 아래 `A/S 및 구매`, `2027년 양품화 사업`, `디벗 재배치 사업`, `기타` 탐색
 - FAQ 화면 우측 상단 계정 메뉴: 로그인 상태에서 사용자 아이디 및 관리자 페이지 이동 표시, 같은 위치에서 로그인·로그아웃 전환
 - FAQ·로그인·관리자 화면의 보조 설명은 `?` 아이콘 툴팁으로 제공하며 마우스·키보드·터치로 확인
+- 공통 헤더·푸터는 `components/`의 HTML 조각으로 관리하고, `common.css`와 화면별 CSS로 스타일 분리
 - 검색어 입력 후 200ms 지연 검색 및 한글 입력 조합 처리
 - ID·제목·답변·검색어 검색, 띄어쓰기 정규화, 검색어 우선순위
 - 구분·주제 필터와 검색 조건 초기화
 - 페이지당 20건 표시 및 이전·다음 페이지 이동
+- `faq-search-site/data/faq.json`의 시연용 더미 FAQ 21건으로 목록·검색·필터·페이징 확인
 - 질문별 답변 펼침, 제한된 Markdown 표시, 답변 복사
 - 검색어·필터·페이지·FAQ 직접 접근 상태의 URL 반영
 - 데이터 로딩·오류·빈 결과 상태 안내
 - 모바일 화면 및 키보드 포커스 표시
 
-현재 데이터 파일이 없으므로 FAQ 목록은 표시되지 않습니다. 실제 질문과 답변의 추출·검토·등록 및 데이터 연결은 별도 작업입니다.
+현재 `data/faq.json`에는 화면 확인용 더미 데이터만 있습니다. 답변은 실제 상담 지침이 아니며, 실제 DB/API 연결 시 검토된 FAQ로 교체해야 합니다.
 
 로그인 화면은 `login.html`, 관리자 페이지는 `admin.html`에서 확인할 수 있습니다. DB 연결 전 관리자 화면 확인용 임시 계정은 `test` / `1111`입니다. 회원 계정은 이름·아이디·비밀번호만 입력하며 권한은 상담원으로 고정합니다. 관리자 화면에서 회원을 조회·개설·수정·삭제할 수 있습니다. 변경 사항은 브라우저 메모리에만 반영되어 새로고침하면 초기화됩니다. 임시 인증은 브라우저 코드에서 확인하므로 접근 통제가 아니며, 실제 배포 전 서버 인증과 권한 검증으로 교체해야 합니다.
 
@@ -30,12 +34,25 @@ FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이
 ```text
 faq-search-site/
   index.html
+  faq.html
   login.html
   admin.html
+  components/
+    header.html
+    footer.html
+    faq-sidebar.html
+  data/
+    faq.json           # 화면 확인용 더미 FAQ
   assets/
+    img/k-one-mark.svg
+    img/chevron-down.svg
+    css/common.css
     css/style.css
+    css/browse.css
     css/auth.css
+    js/components.js
     js/app.js       # 화면 상태, 데이터 로드, URL 상태
+    js/browse.js    # FAQ 대분류별 탐색 화면
     js/search.js    # 검색 정규화, 필터링, 정렬
     js/render.js    # 결과·답변·페이지 UI 표시
     js/auth.js      # 로그인·관리자 화면 입력 동작

@@ -1,0 +1,84 @@
+/* 모든 페이지에서 공유하는 기본 스타일, 헤더·푸터와 도움말 표시를 담당합니다. */
+:root {
+  font-family: Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #202733;
+  background: #f7f8fa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --muted: #737d8b;
+  --line: #e5e8ed;
+  --blue: #3566d6;
+}
+
+* { box-sizing: border-box; }
+body { min-width: 320px; min-height: 100vh; margin: 0; }
+button, input, select { font: inherit; }
+button, select { cursor: pointer; }
+button, a { -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+
+.site-header { border-bottom: 1px solid var(--line); background: #fff; }
+.site-header-inner { display: flex; width: min(100% - 48px, 1440px); height: 76px; align-items: center; justify-content: space-between; margin: 0 auto; }
+.brand { display: inline-flex; align-items: center; gap: 10px; color: #1c2738; font-size: 15px; font-weight: 800; letter-spacing: .02em; text-decoration: none; }
+.brand-mark { display: block; width: 31px; height: 31px; flex: none; }
+.brand-light { margin-left: 3px; color: #667286; font-size: 11px; font-weight: 650; letter-spacing: .08em; }
+.header-actions { display: flex; align-items: center; gap: 20px; }
+.header-label { color: #697486; font-size: 13px; }
+.header-login { padding: 8px 13px; border: 1px solid #e0e5ed; border-radius: 7px; color: #47566c; background: #fff; font-size: 12px; font-weight: 650; }
+.header-login:hover { border-color: #bdcbea; color: var(--blue); }
+.account-menu { position: relative; }
+.account-trigger { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 4px 9px 4px 5px; border: 1px solid #e4e8ee; border-radius: 22px; color: #435064; background: #fff; font-size: 12px; font-weight: 650; }
+.account-avatar { display: grid; width: 27px; height: 27px; place-items: center; border-radius: 50%; color: #4264a8; background: #edf2ff; font-size: 11px; font-weight: 750; }
+.chevron-icon { display: inline-block; width: 14px; height: 14px; flex: none; vertical-align: middle; }
+.account-chevron { margin-left: 1px; }
+.account-menu-panel { position: absolute; z-index: 5; top: calc(100% + 8px); right: 0; width: 164px; padding: 5px; border: 1px solid #e7eaf0; border-radius: 9px; background: #fff; box-shadow: 0 10px 28px #2637541c; }
+.account-menu-panel a, .account-menu-panel button { display: block; width: 100%; padding: 10px 9px; border: 0; border-radius: 5px; color: #4b5768; background: transparent; font-size: 12px; text-align: left; text-decoration: none; }
+.account-menu-panel a:hover, .account-menu-panel button:hover { color: var(--blue); background: #f4f7fd; }
+.account-role { display: block; padding: 8px 9px 7px; color: #929baa; font-size: 10px; }
+.site-footer { display: flex; width: min(100% - 48px, 1056px); align-items: center; justify-content: space-between; gap: 16px 24px; margin: 0 auto; padding: 18px 0 22px; border-top: 1px solid var(--line); color: #929aa6; font-size: 11px; line-height: 1.6; }
+.footer-meta, .footer-contact { display: flex; flex-direction: column; gap: 2px; }
+.footer-copyright, .footer-developer { color: #687486; font-weight: 650; }
+.footer-license { font-size: 10px; }
+.footer-contact { align-items: flex-end; }
+.footer-emails { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 12px; }
+.site-footer a { color: inherit; text-decoration: none; }
+.site-footer a:hover { color: var(--blue); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.help-tip { position: relative; display: inline-flex; flex: none; vertical-align: middle; }
+.help-tip > summary { display: grid; width: 17px; height: 17px; place-items: center; list-style: none; border: 1px solid #aeb9c9; border-radius: 50%; color: #758297; background: #fff; cursor: help; font-size: 11px; font-weight: 700; line-height: 1; }
+.help-tip > summary::-webkit-details-marker { display: none; }
+.help-tip-content { position: absolute; z-index: 10; right: 0; bottom: calc(100% + 8px); display: none; width: max-content; max-width: min(270px, calc(100vw - 40px)); padding: 10px 12px; border: 1px solid #dce2eb; border-radius: 8px; color: #465366; background: #fff; box-shadow: 0 8px 24px #24365320; font-size: 11px; font-weight: 400; line-height: 1.6; text-align: left; white-space: normal; }
+.help-tip:hover > .help-tip-content, .help-tip:focus-within > .help-tip-content { display: block; }
+.section-title-with-help { display: inline-flex; align-items: center; gap: 8px; }
+.faq-workspace { display: grid; min-height: calc(100vh - 77px); grid-template-columns: 232px minmax(0, 1fr); }
+.faq-sidebar { position: sticky; top: 0; min-width: 0; height: calc(100vh - 77px); overflow-y: auto; padding: 28px 15px; border-right: 1px solid var(--line); background: #fff; }
+.faq-sidebar-nav, .faq-nav-main, .faq-nav-group { min-width: 0; }
+.faq-nav-main { display: flex; flex-direction: column; gap: 5px; }
+.faq-nav-group { display: flex; flex-direction: column; }
+.faq-nav-link, .faq-nav-submenu a { display: flex; min-height: 38px; align-items: center; padding: 0 12px; border-radius: 7px; color: #596678; font-size: 12px; text-decoration: none; }
+.faq-nav-link { font-weight: 650; }
+.faq-nav-link:hover, .faq-nav-submenu a:hover { color: var(--blue); background: #f5f7fb; }
+.faq-nav-link[aria-current="page"], .faq-nav-submenu a[aria-current="page"] { color: #315fc7; background: #eff4ff; font-weight: 700; }
+.faq-nav-submenu { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 5px 10px; padding-left: 9px; border-left: 1px solid #e7ebf1; }
+.faq-nav-submenu a { min-height: 34px; padding-left: 10px; color: #7a8595; font-size: 11px; }
+.faq-content { display: flex; min-width: 0; flex-direction: column; }
+.faq-content > .page-shell, .faq-content > main { flex: 1; }
+:focus-visible { outline: 3px solid #3566d677; outline-offset: 2px; }
+
+@media (max-width: 600px) {
+  .site-header-inner { width: min(100% - 32px, 1440px); height: 64px; }
+  .site-footer { width: min(100% - 32px, 1056px); flex-direction: column; align-items: flex-start; font-size: 10px; }
+  .footer-contact { align-items: flex-start; }
+  .footer-emails { justify-content: flex-start; gap: 2px 10px; }
+  .header-actions { gap: 9px; }
+  .header-label { display: none; }
+}
+
+@media (max-width: 760px) {
+  .faq-workspace { grid-template-columns: minmax(0, 1fr); }
+  .faq-sidebar { position: static; height: auto; overflow-x: auto; overflow-y: hidden; padding: 8px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .faq-nav-main { width: max-content; flex-direction: row; align-items: center; gap: 7px; }
+  .faq-nav-group { flex-direction: row; align-items: center; gap: 2px; }
+  .faq-nav-link, .faq-nav-submenu a { min-height: 34px; padding: 0 10px; white-space: nowrap; }
+  .faq-nav-submenu { flex-direction: row; gap: 2px; margin: 0; padding: 0 0 0 7px; border-top: 0; border-bottom: 0; border-left: 1px solid #e7ebf1; }
+}

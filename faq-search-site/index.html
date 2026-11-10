@@ -4,35 +4,19 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f7f8fa">
-    <title>FAQ 검색 | KONE SeoulEdu</title>
+    <title>FAQ 검색 | K-ONE SeoulEdu</title>
+    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/style.css">
+    <script type="module" src="assets/js/components.js"></script>
     <script type="module" src="assets/js/app.js"></script>
   </head>
-  <body>
-    <div class="page-shell">
-      <header class="site-header">
-        <a class="brand" href="./" aria-label="FAQ 검색 홈">
-          <span class="brand-mark" aria-hidden="true">K</span>
-          <span>KONE <span class="brand-light">SEOUL EDU</span></span>
-        </a>
-        <div class="header-actions">
-          <span class="header-label">상담 지원 FAQ</span>
-          <button id="header-auth-action" class="header-login" type="button">로그인</button>
-          <div id="account-menu" class="account-menu" hidden>
-            <button id="account-menu-trigger" class="account-trigger" type="button" aria-expanded="false" aria-controls="account-menu-panel">
-              <span class="account-avatar" aria-hidden="true">?</span>
-              <span id="account-username">사용자</span>
-              <span class="account-chevron" aria-hidden="true">⌄</span>
-            </button>
-            <div id="account-menu-panel" class="account-menu-panel" hidden>
-              <span id="account-role" class="account-role"></span>
-              <a id="admin-page-link" href="admin.html" hidden>관리자 페이지</a>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main>
+  <body data-section="search">
+    <div data-include="components/header.html"></div>
+    <div class="faq-workspace">
+      <div data-include="components/faq-sidebar.html"></div>
+      <div class="faq-content">
+        <div class="page-shell">
+          <main>
         <section class="hero" aria-labelledby="page-title">
           <p class="eyebrow">빠르게 찾고, 정확하게 안내하세요</p>
           <div class="hero-title-row">
@@ -55,11 +39,10 @@
               <span class="sr-only">구분</span>
               <select id="category-filter" aria-label="구분">
                 <option value="">모든 구분</option>
-                <option>양품화 사업</option>
-                <option>학교 업무</option>
-                <option>유지보수</option>
-                <option>재배치·여분 기기</option>
-                <option>문의</option>
+                <option>A/S 및 구매</option>
+                <option>2027년 양품화 사업</option>
+                <option>디벗 재배치 사업</option>
+                <option>기타</option>
               </select>
             </label>
             <label class="filter-control">
@@ -78,18 +61,15 @@
               <h2 id="results-heading">자주 찾는 질문</h2>
               <p class="result-count" id="result-count" aria-live="polite">FAQ 데이터를 준비하고 있습니다.</p>
             </div>
-            <span class="sort-label">최근 등록순 <span aria-hidden="true">⌄</span></span>
+            <span class="sort-label">최근 등록순 <img class="chevron-icon" src="assets/img/chevron-down.svg" alt="" aria-hidden="true" width="14" height="14"></span>
           </div>
           <div id="results" class="results-list" aria-live="polite" aria-busy="true"></div>
           <nav id="pagination" class="pagination" aria-label="결과 페이지"></nav>
         </section>
-      </main>
-
-      <footer class="site-footer">
-        <span>KONE SeoulEdu</span>
-        <span>상담 업무를 위한 FAQ 검색</span>
-        <span>개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></span>
-      </footer>
+          </main>
+        </div>
+        <div data-include="components/footer.html"></div>
+      </div>
     </div>
   </body>
 </html>

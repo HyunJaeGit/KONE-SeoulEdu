@@ -4,16 +4,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f5f7fb">
-    <title>관리자 페이지 | KONE SeoulEdu FAQ</title>
+    <title>관리자 페이지 | K-ONE SeoulEdu FAQ</title>
+    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/auth.css">
+    <script type="module" src="assets/js/components.js"></script>
     <script type="module" src="assets/js/auth.js"></script>
   </head>
-  <body class="admin-page">
+  <body class="admin-page" data-page="admin">
+    <div data-include="components/header.html"></div>
     <main id="admin-login-view" class="auth-shell admin-shell">
-      <a class="auth-brand" href="login.html" aria-label="로그인으로 돌아가기">
-        <span class="brand-mark" aria-hidden="true">K</span>
-        <span>KONE <span class="brand-light">SEOUL EDU</span></span>
-      </a>
       <section class="auth-card admin-card" aria-labelledby="admin-title">
         <a class="back-link" href="login.html">← 로그인으로</a>
         <div class="auth-heading admin-heading">
@@ -47,15 +46,10 @@
           </details>
         </div>
       </section>
-      <footer class="auth-footer">
-        <a href="login.html">일반 로그인으로 돌아가기</a>
-        <span>개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></span>
-      </footer>
     </main>
 
     <div id="admin-dashboard" class="dashboard" hidden>
       <aside class="dashboard-sidebar">
-        <a class="dashboard-brand" href="admin.html"><span class="brand-mark">K</span><span>KONE <small>SEOUL EDU</small></span></a>
         <p class="sidebar-label">ADMINISTRATION</p>
         <a class="sidebar-link is-current" href="#members"><span aria-hidden="true">▦</span> 회원 관리</a>
         <div class="sidebar-bottom"><span class="admin-avatar">A</span><span><strong>관리자</strong><small>임시 관리자</small></span></div>
@@ -64,10 +58,6 @@
       <main class="dashboard-main" id="members">
         <header class="dashboard-header">
           <div><p class="eyebrow">ADMINISTRATION</p><h1>회원 관리</h1></div>
-          <div class="dashboard-account">
-            <span class="dashboard-username" id="dashboard-username">test</span>
-            <button id="admin-logout" class="logout-button" type="button">로그아웃</button>
-          </div>
         </header>
 
         <section class="dashboard-intro">
@@ -92,7 +82,6 @@
           </div>
           <div id="member-empty" class="table-empty" hidden>검색 조건에 맞는 회원이 없습니다.</div>
         </section>
-        <footer class="dashboard-footer">개발자 권현재 · <a href="mailto:hyunjae_kwon@k-one.co.kr">hyunjae_kwon@k-one.co.kr</a> · <a href="mailto:fatking25@kakao.com">fatking25@kakao.com</a></footer>
       </main>
     </div>
 
@@ -108,5 +97,6 @@
         <div class="dialog-actions"><button id="cancel-dialog" class="secondary-button" type="button">취소</button><button class="primary-button" type="submit">저장</button></div>
       </form>
     </dialog>
+    <div data-include="components/footer.html"></div>
   </body>
 </html>

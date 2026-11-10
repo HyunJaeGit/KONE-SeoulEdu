@@ -49,6 +49,7 @@ document.querySelector("#login-form")?.addEventListener("submit", (event) => {
     return;
   }
   sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: demoAdmin.username, role: "admin" }));
+  window.dispatchEvent(new Event("auth-session-changed"));
   window.location.href = "index.html";
 });
 
@@ -61,12 +62,8 @@ document.querySelector("#admin-login-form")?.addEventListener("submit", (event) 
   }
   const session = { username: demoAdmin.username, role: "admin" };
   sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event("auth-session-changed"));
   showAdminDashboard(session);
-});
-
-document.querySelector("#admin-logout")?.addEventListener("click", () => {
-  sessionStorage.removeItem(AUTH_SESSION_KEY);
-  window.location.href = "login.html";
 });
 
 document.querySelector("#member-search")?.addEventListener("input", renderMembers);
@@ -185,7 +182,6 @@ function showAdminDashboard(session) {
   if (!loginView || !dashboard || session?.role !== "admin") return;
   loginView.hidden = true;
   dashboard.hidden = false;
-  document.querySelector("#dashboard-username").textContent = session.username;
   renderMembers();
 }
 

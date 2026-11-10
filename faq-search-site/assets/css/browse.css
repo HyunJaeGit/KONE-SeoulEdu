@@ -1,0 +1,26 @@
+/* FAQ 분류 탐색 화면의 카테고리 카드와 제목 배치를 담당합니다. */
+.browse-shell { padding-top: 56px; }
+.browse-shell h1 { font-size: clamp(28px, 3.4vw, 36px); }
+.browse-intro { margin: 12px 0 27px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.category-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.category-card { display: flex; min-height: 116px; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border: 1px solid #e5e8ed; border-radius: 11px; color: inherit; background: #fff; text-decoration: none; transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease; }
+.category-card:hover { transform: translateY(-1px); border-color: #cbd7ee; box-shadow: 0 7px 18px #2837540b; }
+.category-card-copy { display: flex; flex-direction: column; gap: 8px; }
+.category-card-title { color: #293546; font-size: 15px; font-weight: 700; }
+.category-card-meta { color: #8993a2; font-size: 11px; }
+.category-card .chevron-icon { transform: rotate(-90deg); }
+.browse-back { display: inline-block; margin-bottom: 27px; color: #778395; font-size: 12px; text-decoration: none; }
+.browse-back:hover { color: var(--blue); }
+.browse-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 20px; padding-bottom: 19px; border-bottom: 1px solid var(--line); }
+.browse-heading .eyebrow { margin-bottom: 8px; font-size: 10px; }
+.browse-heading .result-count { margin-top: 8px; }
+.faq-category-view .faq-card { border-radius: 9px; }
+
+@media (max-width: 600px) {
+  .browse-shell { padding-top: 34px; }
+  .category-cards { grid-template-columns: 1fr; gap: 9px; }
+  .category-card { min-height: 88px; padding: 14px 16px; }
+  .browse-intro { margin-bottom: 20px; }
+  .browse-heading { align-items: flex-start; }
+  .browse-heading .sort-label { padding-top: 4px; white-space: nowrap; }
+}
