@@ -147,22 +147,36 @@ function createFaqCard(faq, expandedIds) {
     const answer = document.createElement("div");
     answer.className = "faq-answer";
     answer.id = answerId;
-    renderMarkdown(faq.answer, answer);
+    const toolbar = document.createElement("div");
+    toolbar.className = "faq-answer-toolbar";
+    const copyStatus = document.createElement("span");
+    copyStatus.className = "copy-status";
+    copyStatus.setAttribute("role", "status");
+    copyStatus.setAttribute("aria-live", "polite");
     const copy = document.createElement("button");
     copy.className = "copy-button";
     copy.type = "button";
-    copy.textContent = "질문과 답변 복사";
+    copy.setAttribute("aria-label", "질문과 답변 복사");
+    const copyIcon = document.createElement("img");
+    copyIcon.className = "copy-icon";
+    copyIcon.src = "assets/img/copy.svg";
+    copyIcon.alt = "";
+    copyIcon.setAttribute("aria-hidden", "true");
+    const copyLabel = document.createElement("span");
+    copyLabel.textContent = "복사";
+    copy.append(copyIcon, copyLabel);
     copy.addEventListener("click", async () => {
-      const original = copy.textContent;
       try {
         await navigator.clipboard.writeText(`${faq.title}\n${faq.answerText ?? faq.answer}`);
-        copy.textContent = "복사했습니다";
+        copyStatus.textContent = "복사했습니다.";
       } catch {
-        copy.textContent = "복사할 수 없습니다. 답변을 직접 선택해 복사해 주세요.";
+        copyStatus.textContent = "복사할 수 없습니다. 답변을 직접 선택해 복사해 주세요.";
       }
-      window.setTimeout(() => { copy.textContent = original; }, 2500);
+      window.setTimeout(() => { copyStatus.textContent = ""; }, 2500);
     });
-    answer.append(copy);
+    toolbar.append(copyStatus, copy);
+    answer.append(toolbar);
+    renderMarkdown(faq.answer, answer);
     card.append(answer);
   }
 

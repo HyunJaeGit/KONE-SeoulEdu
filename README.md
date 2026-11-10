@@ -8,8 +8,9 @@ FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이
 
 - `faq-search-site/login.html`: 일반·관리자 로그인 화면
 - `faq-search-site/admin.html`: 임시 관리자 로그인과 회원 조회·개설·수정·삭제 화면
-- `faq-search-site/faq.html`: 좌측 FAQ 메뉴에서 대분류별로 탐색하는 화면
+- `faq-search-site/faq.html`: 질문 목록을 기본 표시하고 상단 카테고리 선택으로 목록을 필터링하는 화면
 - FAQ 좌측 메뉴: 검색과 FAQ 분리, FAQ 아래 `A/S 및 구매`, `2027년 양품화 사업`, `디벗 재배치 사업`, `기타` 탐색
+- FAQ 좌측 메뉴와 대분류 하위 메뉴 각각 접기·펼치기 가능, 현재 탭에서 페이지 이동 후 상태 유지
 - FAQ 화면 우측 상단 계정 메뉴: 로그인 상태에서 사용자 아이디 및 관리자 페이지 이동 표시, 같은 위치에서 로그인·로그아웃 전환
 - FAQ·로그인·관리자 화면의 보조 설명은 `?` 아이콘 툴팁으로 제공하며 마우스·키보드·터치로 확인
 - 공통 헤더·푸터는 `components/`의 HTML 조각으로 관리하고, `common.css`와 화면별 CSS로 스타일 분리
@@ -46,6 +47,7 @@ faq-search-site/
   assets/
     img/k-one-mark.svg
     img/chevron-down.svg
+    img/copy.svg
     css/common.css
     css/style.css
     css/browse.css

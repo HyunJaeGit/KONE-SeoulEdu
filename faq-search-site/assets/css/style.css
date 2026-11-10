@@ -1,7 +1,6 @@
 /* FAQ 검색 사이트의 반응형 화면과 접근성 스타일을 담당합니다. */
 .page-shell { width: min(100% - 48px, 1056px); margin: 0 auto; }
 .hero { padding: 48px 0 40px; text-align: center; }
-.eyebrow { margin: 0 0 14px; color: var(--blue); font-size: 13px; font-weight: 700; letter-spacing: .015em; }
 h1 { margin: 0; color: #192333; font-size: clamp(30px, 4vw, 42px); letter-spacing: -.055em; line-height: 1.25; }
 .hero-title-row { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
 .hero-title-row { justify-content: center; }
@@ -38,7 +37,10 @@ h2 { margin: 0; color: #252e3a; font-size: 18px; letter-spacing: -.035em; }
 .faq-answer th, .faq-answer td { padding: 7px 10px; border: 1px solid var(--line); }
 .faq-answer th { background: #f7f8fa; }
 .faq-answer a { color: var(--blue); text-underline-offset: 2px; }
-.copy-button { margin-top: 13px; padding: 7px 10px; border: 1px solid #e1e5ea; border-radius: 6px; color: #5c6878; background: white; font-size: 12px; }
+.faq-answer-toolbar { display: flex; min-height: 28px; align-items: center; justify-content: flex-end; gap: 8px; margin: 0 0 8px; }
+.copy-button { display: inline-flex; min-height: 28px; align-items: center; gap: 5px; padding: 4px 8px; border: 1px solid #e1e5ea; border-radius: 6px; color: #5c6878; background: white; font-size: 11px; line-height: 1; }
+.copy-icon { display: block; width: 14px; height: 14px; flex: none; }
+.copy-status { max-width: min(260px, 70%); color: #758195; font-size: 10px; line-height: 1.4; text-align: right; }
 .copy-button:hover { border-color: #aebfe8; color: var(--blue); }
 .empty-state { display: grid; min-height: 155px; place-content: center; justify-items: center; padding: 22px; border: 1px dashed #dfe3e9; border-radius: 10px; color: #707b8a; background: #fff; text-align: center; }
 .empty-state strong { margin-bottom: 6px; color: #394454; font-size: 15px; }
