@@ -8,7 +8,7 @@
 
 Flyway는 DB 구조와 초기 데이터 변경을 순서대로 기록·적용한다. OpenAPI는 백엔드 API의 요청과 응답 계약을 문서화하고 Swagger UI에서 확인할 수 있게 한다. 두 도구는 서로 다른 대상을 관리하며 함께 사용한다.
 
-이 매뉴얼 작성 시점에는 DB 제품, 백엔드 언어·프레임워크, 실행·배포 환경이 확정되지 않았다. 해당 선택을 먼저 확정한 뒤 도구 버전과 명령어를 해당 환경에 맞춰 정한다.
+현재 로컬 실습 환경은 MySQL 8.4, Docker Desktop, Java 21, Spring Boot, Gradle - Groovy로 구성했다. 운영 배포 환경은 별도 단계에서 결정한다.
 
 ## 2. 프로젝트에서 만들 데이터
 
@@ -36,7 +36,7 @@ FAQ 운영 데이터의 현재 기준은 다음 6개 필드다.
 - 스키마 변경과 FAQ 초기 데이터 적재를 구분해 검토한다.
 - OpenAPI 계약과 실제 API 구현이 일치하는지 확인한다.
 - DB 초기화, 데이터 삭제, 운영 DB 변경은 별도 명시 승인 없이 실행하지 않는다.
-- 매 단계에서 실행한 명령, 결과, 배운 SQL/API 개념, 미해결 문제를 작업 기록에 남긴다. 비밀값은 기록하지 않는다.
+- Phase별 진행 상황과 확인된 결과를 이 매뉴얼의 현재 상태에 반영한다. 비밀값은 기록하지 않는다.
 
 ## 4. Phase별 실습
 
@@ -156,7 +156,7 @@ SHOW TABLES;
 EXIT;
 ```
 
-초기 DB에는 FAQ 테이블이 아직 없다. 이 확인은 컨테이너·계정·DB 연결만 점검한다. 실제 테이블은 승인된 스키마를 설계한 뒤 Flyway로 만든다.
+초기 DB 연결 확인 시점에는 테이블이 없었다. 이후 Phase 2에서 Flyway를 적용해 테이블을 생성했다.
 
 ##### 0-4. Spring Boot 기본 프로젝트 생성
 
@@ -175,7 +175,7 @@ Spring Initializr에서 아래 설정을 권장한다.
 
 프로젝트 ZIP을 내려받아 압축을 `KONE-SeoulEdu/backend/`에 푼다. Gradle - Groovy 프로젝트는 `build.gradle` 파일을 사용한다. Spring Boot 생성 버전과 의존성 호환성을 유지하고 버전을 따로 임의 고정하지 않는다.
 
-현재 `backend/build.gradle`에는 Flyway와 MySQL 지원 의존성이 이미 들어 있다. 마이그레이션 SQL은 아직 만들지 않았고, Flyway 실행은 로컬 프로필에서 꺼 둔다. API 계약은 `backend/src/main/resources/static/openapi.yaml`에 두고 Swagger UI에서 읽도록 설정했다.
+`backend/build.gradle`에는 Flyway와 MySQL 지원 의존성이 들어 있다. API 계약은 `backend/src/main/resources/static/openapi.yaml`에서 관리하고 Swagger UI에서 읽도록 설정했다.
 
 ##### 0-5. 개발 DB 연결 설정
 
@@ -189,10 +189,10 @@ Spring Initializr에서 아래 설정을 권장한다.
 spring.datasource.url=jdbc:mysql://localhost:3307/kone_faq_dev
 spring.datasource.username=kone_app
 spring.datasource.password=YOUR_LOCAL_PASSWORD
-spring.flyway.enabled=false
+spring.flyway.enabled=true
 ```
 
-Phase 0에서는 테이블이 아직 없으므로 Flyway 자동 실행을 잠시 끈다. 실제 마이그레이션을 시작하는 Phase 2에서 설정을 켜고 SQL 파일을 추가한다. Spring Boot는 `spring.datasource.*` 설정으로 JDBC 연결 정보를 읽는다.
+로컬 DB 연결 설정은 `backend/src/main/resources/application-local.properties`에 둔다. Phase 2에서는 Flyway를 켜고 마이그레이션 파일을 추가했다. Spring Boot는 `spring.datasource.*` 설정으로 JDBC 연결 정보를 읽는다.
 
 프로젝트를 IntelliJ에서 열고 `FaqApiApplication`의 실행 버튼을 누른다. 콘솔에서 애플리케이션 시작 로그와 Hikari 연결 풀 시작을 확인한다. 연결 오류가 있으면 URL 포트 `3307`, 사용자 `kone_app`, 로컬 비밀번호, MySQL 컨테이너 상태를 순서대로 대조한다. 비밀번호를 로그나 대화에 붙여넣지 않는다.
 
@@ -211,7 +211,7 @@ docker compose ps
 - [x] 일반 PowerShell에서 Docker Client·Server 정보를 확인했다. Client 29.6.2, Docker Desktop Server 4.85.0, Engine 29.6.2.
 - [x] Docker Compose로 MySQL 컨테이너가 실행된다.
 - [x] 앱 전용 계정으로 접속해 `SELECT DATABASE(), VERSION();` 결과를 확인했다. `kone_faq_dev`, MySQL `8.4.13` 응답을 확인했고, `SHOW TABLES`가 비어 있는 것은 아직 마이그레이션 전이므로 정상이다.
-- [x] Spring Boot 4.1.2가 Java 21·Gradle 9.8.2 환경에서 시작하고 `SELECT 1` 결과를 확인했다.
+- [x] Spring Boot 4.1.2가 Java 21·Gradle 9.8.2 환경에서 시작하고 DB 연결을 확인했다.
 - [x] `.gitignore`에 `.env`와 `backend/src/main/resources/application-local.properties`가 포함됐음을 사용자 확인으로 반영했다.
 
 **Phase 0 완료 기록 — 2026-11-11**
@@ -219,7 +219,9 @@ docker compose ps
 - MySQL 8.4.13 로컬 컨테이너와 앱 전용 계정 접속을 확인했다.
 - Spring Boot에서 SQL `SELECT 1` 실행을 확인했다.
 - 로컬 비밀 설정 파일을 Git 추적에서 제외하도록 구성했다.
-- FAQ 테이블은 아직 만들지 않았다. 승인된 FAQ 구조를 설계한 뒤 Flyway로 생성한다.
+- Phase 2에서 Flyway V1을 적용해 다섯 업무 테이블을 생성했다. `flyway_schema_history`에서 버전 1, 설명 `create faq schema`, 성공 여부 `1`을 확인했다.
+- `SHOW TABLES`에서 `faq_categories`, `faq_keywords`, `faq_usage_stats`, `faqs`, `users`, `flyway_schema_history`를 확인했다.
+- 당시 FAQ 테이블이 없던 상태에서 Phase 0 DB 접속을 확인했다. 이후 Phase 2에서 생성된 다섯 업무 테이블의 구조 확인 결과는 아래 Phase 2 기록을 따른다.
 - 임시 `DatabaseConnectionCheck.java` 파일 제거 여부는 확인되지 않았다. 다음 기능 작업 전에 진단용 파일을 제거한다.
 
 Phase 0 공식 참고 문서:
@@ -267,14 +269,17 @@ Swagger UI 의존성은 Spring Boot 4.1.x 호환 범위의 springdoc 3.2.x를 �
 
 DB 변경을 SQL 파일로 기록하고 로컬 DB에 순서대로 적용한다.
 
-**예상 변경 단위**
+**적용 결과**
 
-1. FAQ·카테고리·키워드 저장 구조를 만드는 첫 마이그레이션
-2. 회원·역할 구조를 만드는 마이그레이션
-3. FAQ 열기 집계 구조를 만드는 마이그레이션
-4. 필요 시 인덱스와 제약조건을 추가하는 후속 마이그레이션
+- `backend/src/main/resources/db/migration/V1__create_faq_schema.sql`에 다섯 업무 테이블 생성 SQL을 작성했다.
+- 로컬 프로필에서 Flyway를 활성화하고 `bootRun`으로 애플리케이션을 실행했다.
+- Flyway가 V1을 검증·적용했고 `flyway_schema_history`에 성공 기록을 남겼다.
+- MySQL `SHOW TABLES`에서 다섯 업무 테이블과 Flyway 이력 테이블을 확인했다.
+- 다섯 업무 테이블의 `DESCRIBE` 결과를 설계와 대조했다. 컬럼, 자료형, 기본키와 고유성 설정이 일치했다.
+- `SHOW CREATE TABLE`로 관계와 삭제 동작을 확인했다. `faqs.category_id`는 카테고리 참조 시 삭제를 제한하고, FAQ 삭제 시 키워드·열람 집계 행은 함께 삭제된다.
+- 확인한 인덱스: FAQ의 카테고리·주제 및 생성 시각, 키워드 검색용 `keyword` 인덱스.
 
-파일명 형식과 SQL 세부 문법은 DB와 Flyway 구성 확정 뒤 정한다. 카테고리별 테이블 분리 여부와 키워드 저장 방식도 이 단계 설계 전에 결정한다. 현재 문서만으로 테이블 구조를 확정하지 않는다.
+마이그레이션 파일명은 `V1__create_faq_schema.sql` 형식이다. 이미 적용된 V1은 수정하지 않고, 이후 스키마 변경은 새 버전의 파일로 추가한다.
 
 **학습·확인 항목**
 
@@ -285,15 +290,24 @@ DB 변경을 SQL 파일로 기록하고 로컬 DB에 순서대로 적용한다.
 
 **완료 기준**
 
-- 빈 로컬 DB에 마이그레이션을 순서대로 적용할 수 있다.
-- Flyway 이력에서 적용된 버전과 성공 여부를 확인할 수 있다.
-- DB 구조와 제약조건이 승인된 설계와 일치한다.
+- [x] 로컬 DB에 첫 마이그레이션을 적용했다.
+- [x] Flyway 이력에서 버전과 성공 여부를 확인했다.
+- [x] 업무 테이블의 컬럼·제약조건이 설계와 일치하는지 확인했다.
 
 ### Phase 3. 승인 FAQ 초기 데이터 적재
 
 **목표**
 
-카테고리별 FAQ 초안 중 검토·승인된 항목만 DB에 적재한다.
+승인된 FAQ 후보를 운영 테이블 구조에 맞게 준비하고 개발 DB에 적재한다.
+
+**진행 결과**
+
+- 통합 원본 39건 중 38건을 승인하고 1건(2024학년도 한시적 애플펜슬 지원)을 제외했다.
+- 2027년 신규 펜슬 지급 안내에 신입생 기기 수와 양품화 대상 기기 수의 조건, iPad 호환펜 20%·그 외 OS 디벗 15% 기준안, 교육청 정책 미확정 상태를 반영했다.
+- 유지보수 안내는 문의 기기의 보급 연도 기준으로 적용하도록 정리했다.
+- Flyway V2 카테고리 입력을 애플리케이션 시작 로그에서 성공 확인했다.
+- `backend/src/main/resources/db/migration/V3__insert_initial_faqs.sql`의 FAQ 38건, 키워드, 열람 집계 초기값을 Flyway로 적용했다.
+- 집계 확인 결과: 카테고리 3개, FAQ 38건, 키워드 180개, 열람 집계 38행, 0이 아닌 열람 횟수 0건, V3 성공 기록 1건.
 
 **작업**
 
@@ -304,22 +318,35 @@ DB 변경을 SQL 파일로 기록하고 로컬 DB에 순서대로 적용한다.
 
 **완료 기준**
 
-- 승인 데이터만 개발 DB에 적재된다.
-- 적재 후 건수와 표본 조회 결과가 원본 승인 데이터와 일치한다.
-- 적재 절차를 빈 개발 DB에서 다시 수행할 수 있다.
+- [x] 승인된 38건만 개발 DB에 적재된다. 제외한 한시 지원 항목은 포함되지 않는다.
+- [x] 적재 건수와 연관 데이터 수가 확인됐다: FAQ 38건, 키워드 180개, 열람 집계 38행.
+- [x] Flyway V3의 성공 적용 이력을 확인했다.
+- [ ] 제목·내용 표본을 통합 원본과 대조한다.
 
 ### Phase 4. FAQ 조회 API와 OpenAPI 검증
 
 **목표**
 
-DB의 FAQ를 조회하는 API를 구현하고 명세대로 동작하는지 확인한다.
+서버 세션 인증을 적용하고, 인증된 상담원·관리자가 명세대로 FAQ를 조회할 수 있게 한다.
 
 **작업**
 
+- DB 사용자 비밀번호를 BCrypt로 확인하고 로그인 세션·로그아웃·현재 사용자·CSRF 토큰 API를 구현한다.
 - FAQ 전체·카테고리·주제 조회, 검색, 페이지 처리, ID 상세 조회를 구현한다.
+- FAQ API는 인증 필요, 관리자 경로는 ADMIN 역할 필요로 제한한다.
 - 검색 시 ID·제목·내용·키워드의 대상과 제목 우선순위를 명세에 반영한다.
 - 한국어 띄어쓰기·별칭 검색은 실제 대표 검색어로 검증한다.
 - Swagger UI에서 정상 요청과 잘못된 요청을 실행해 응답을 확인한다.
+
+**현재 구현 상태**
+
+- 로그인·로그아웃·현재 사용자·CSRF API와 FAQ 카테고리·목록/검색·상세·열기 집계 API를 추가했다.
+- FAQ 검색·열람 API는 세션 인증을 요구한다. 비밀번호는 BCrypt로 검증하고 변경 요청은 CSRF 토큰을 요구한다.
+- 첫 관리자 계정이 필요한 경우 `app.bootstrap-admin.enabled=true`를 명시하고 `KONE_ADMIN_USERNAME`, `KONE_ADMIN_PASSWORD` 환경변수를 지정한다. 생성은 `users` 테이블이 비어 있을 때만 허용한다.
+- `compileJava` 성공. 첫 서버 실행에서 Jackson 2 `ObjectMapper` 주입 오류가 발생해 Spring Boot 4의 Jackson 3 `JsonMapper`로 수정했다.
+- 사용자가 Swagger UI에서 CSRF 토큰 발급과 관리자 로그인(200), 현재 사용자 조회, FAQ 목록 조회 성공을 확인했다.
+- OpenAPI를 현재 구현과 대조해 검색 정렬 설명·검색 조건 제한을 갱신하고, 아직 구현하지 않은 관리자 회원 API는 Phase 5 범위로 옮겼다.
+- Phase 4의 남은 상세·열람 집계·접근 제어 검증은 사용자가 완료로 간주하기로 결정했다. 문제가 발견되면 수정한다.
 
 **완료 기준**
 
@@ -327,24 +354,32 @@ DB의 FAQ를 조회하는 API를 구현하고 명세대로 동작하는지 확�
 - 승인 FAQ가 DB 조회 결과와 API 응답에서 일치한다.
 - 인증 전후의 접근 제어가 정해진 계약대로 동작한다.
 
-### Phase 5. 회원·인증·관리자 API
+### Phase 5. 관리자 회원 API
 
 **목표**
 
-운영에 필요한 로그인·세션과 관리자 회원 기능을 서버에 구현한다.
+운영에 필요한 관리자 회원 기능을 서버에 구현한다. 로그인·세션 인증은 Phase 4에서 공통 기반으로 구현한다.
 
 **작업**
 
-- 서버 측 세션 또는 승인된 인증 방식을 구현한다.
 - 상담원은 FAQ 조회만 하고 회원 관리는 하지 못하도록 역할을 검사한다.
 - 관리자는 회원 목록·개설·수정·삭제를 수행할 수 있게 한다.
 - 비밀번호는 안전한 해시 방식으로 저장하고 응답·로그에 노출하지 않는다.
 
+**현재 구현 상태**
+
+- 관리자 전용 `GET /api/admin/members`, `POST /api/admin/members`, `PUT /api/admin/members/{memberId}`, `DELETE /api/admin/members/{memberId}`를 구현했다.
+- 회원 목록은 username 일부 문자열로 검색한다. 신규 계정은 COUNSELOR 역할로 생성하며 비밀번호는 BCrypt로 저장한다.
+- 회원 응답에서 비밀번호를 제외한다. 비밀번호 변경은 PUT 요청으로 처리한다.
+- 자기 자신의 관리자 계정과 마지막 관리자 계정은 삭제할 수 없도록 제한한다.
+- 모든 쓰기 요청은 로그인 세션과 CSRF 토큰을 요구하도록 OpenAPI 계약을 갱신했다.
+- `compileJava` 성공. Swagger에서 회원 관리 요청을 실행하는 런타임 검증은 남아 있다.
+
 **완료 기준**
 
-- 미인증·상담원·관리자별 API 권한을 확인했다.
-- 회원 변경 결과가 DB에 저장되고 새 요청에서도 유지된다.
-- 비밀번호·세션 비밀값이 API 응답과 로그에 노출되지 않는다.
+- [ ] 미인증·상담원·관리자별 API 권한을 확인한다.
+- [ ] 회원 변경 결과가 DB에 저장되고 새 요청에서도 유지되는지 확인한다.
+- [ ] 비밀번호가 응답·로그에 노출되지 않는지 확인한다.
 
 ### Phase 6. 기존 FAQ 사이트 연결
 
@@ -415,28 +450,32 @@ Phase:
 ### 현재 확인 상태
 
 - Phase 0 완료: Docker·MySQL·Spring Boot 로컬 DB 연결
+- Phase 2 완료: Flyway V1 적용 및 다섯 업무 테이블의 컬럼·인덱스·외래 키·삭제 규칙 확인 완료.
 - Java 21 설치 확인
 - Docker CLI 29.6.2 및 Docker Compose 5.3.1 설치 확인
 - 하드웨어 가상화 사용, WSL 기능 활성화, WSL·Ubuntu 설치 및 Ubuntu 초기 설정 완료
 - Docker Desktop Dashboard 실행 확인. 화면은 빈 컨테이너 목록과 `Resource Saver mode`를 표시함.
 - Docker Desktop 엔진의 CLI 연결 확인 완료. 일반 Windows PowerShell에서 Client 29.6.2 및 Server Docker Desktop 4.85.0 / Engine 29.6.2가 반환됨.
-- MySQL 컨테이너와 앱 전용 계정 접속 확인 완료: `kone_faq_dev`, MySQL `8.4.13`; 현재 테이블 없음
-- Spring Boot 4.1.2·Gradle 9.8.2 프로젝트 생성 및 앱에서 `SELECT 1` 실행 확인 완료
+- MySQL 컨테이너와 앱 전용 계정 접속 확인 완료: `kone_faq_dev`, MySQL `8.4.13`.
+- Spring Boot 4.1.2·Gradle 9.8.2에서 DB 연결 및 Flyway 실행 확인 완료.
+- Flyway V1 적용 확인: `flyway_schema_history`에 `1 / create faq schema / success=1` 기록.
+- `SHOW TABLES`에서 다섯 업무 테이블 생성 확인. 다섯 업무 테이블의 구조와 관계 확인 완료.
+- Phase 4 완료(사용자 결정): 세션 인증·FAQ API 구현과 OpenAPI 대조 완료. Swagger에서 로그인, 현재 사용자, FAQ 목록 조회를 확인했다. 추가 검증 중 문제가 발견되면 수정한다.
+- Phase 5 진행 중: 관리자 회원 API 구현과 `compileJava` 완료. Swagger UI에서 CRUD 요청과 권한별 동작 확인이 남아 있다.
 
 ### 미결정 항목
 
 - 실제 배포 환경
-- 컬럼 길이·필수 여부·외래 키 삭제 정책 등 세부 제약조건
 - 키워드 저장·한국어 검색 방식
 - 기존 `answer` 모델에서 `content` 모델로의 호환·전환 방법
 - 관리 원본과 승인 FAQ의 초기 적재 방식
 
 ### 현재 단계와 다음 결정
 
-- FAQ DB 통합 원본 `FAQ-DB-통합-원본.md`에 제목·내용 형식 후보 39건을 정리했다. 사용자 확인이 필요한 쟁점은 FAQ 데이터에서 제외하고 확인 후 반영한다.
-- OpenAPI 명세와 DB 스키마 설계안은 사용자 검토 전 초안이다.
-- Swagger UI는 OpenAPI YAML을 열도록 설정했지만 API 컨트롤러는 아직 없어 실제 요청 기능은 동작하지 않는다.
-- 사용자 검토 후 API 계약·스키마·키워드 저장 방식·대표 FAQ 데이터를 확정한다.
-- 승인된 설계를 반영한 뒤에만 다음 단계에서 Flyway 마이그레이션을 만든다.
+- FAQ DB 통합 원본 `FAQ-DB-통합-원본.md`: 39건 중 38건 승인, 1건 제외. V3 적용 완료; 건수 확인 완료, 제목·내용 표본 대조는 남아 있다.
+- OpenAPI 명세에 인증·FAQ 조회·관리자 회원 API 계약을 반영했다.
+- 다음은 Swagger UI에서 관리자 회원 목록·생성·비밀번호 변경·삭제를 실행하고 저장 결과와 상담원 권한 차단을 확인하는 것이다.
+- DB 논리 설계와 V1 적용 구조의 대조를 마쳤다.
+- Phase 3 잔여 작업은 DB 저장 제목·내용 표본을 통합 원본과 대조하는 것이다.
 
 
