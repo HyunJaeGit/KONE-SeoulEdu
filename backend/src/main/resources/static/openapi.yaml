@@ -12,6 +12,7 @@ servers:
 tags:
   - name: Auth
   - name: FAQ
+  - name: Statistics
   - name: Admin Members
 paths:
   /api/auth/login:
@@ -180,6 +181,34 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+  /api/faqs/highlights:
+    get:
+      tags: [FAQ]
+      summary: 첫 화면의 최근 조회 현황 조회
+      description: 전체 사용자의 최근 7일 FAQ 순위와 오늘의 주제별 열람 순위, 현재 로그인 사용자의 최근 열람 항목을 반환합니다.
+      operationId: getFaqHighlights
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: limit
+          in: query
+          description: 각 목록에 표시할 항목 수, 1~10
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+            default: 5
+      responses:
+        '200':
+          description: 첫 화면 조회 현황
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaqHighlights'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/faqs/{id}:
     parameters:
       - name: id
@@ -205,6 +234,40 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+  /api/faq-statistics:
+    get:
+      tags: [Statistics]
+      summary: FAQ 대분류별 열람 통계 조회
+      description: 선택한 대분류의 최근 7일·30일·90일 FAQ 열람 기록을 집계합니다. 검색 횟수가 아니라 FAQ 상세 열람 횟수 기준이며 계정별 상세 기록은 반환하지 않습니다.
+      operationId: getFaqStatistics
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: categoryId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+        - name: days
+          in: query
+          description: 오늘을 포함한 날짜 수
+          schema:
+            type: integer
+            enum: [7, 30, 90]
+            default: 30
+      responses:
+        '200':
+          description: 대분류별 FAQ 열람 통계
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FaqStatistics'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/faqs/{id}/open:
     parameters:
       - name: id
@@ -216,7 +279,7 @@ paths:
     post:
       tags: [FAQ]
       summary: FAQ 열기 횟수 집계
-      description: FAQ가 실제로 열릴 때 한 번 호출합니다. 사용자별 열람 이력은 저장하지 않습니다.
+      description: FAQ가 실제로 열릴 때 한 번 호출합니다. 전체 누적 열람 횟수와 사용자별 최근 열람 이력을 함께 기록합니다.
       operationId: recordFaqOpen
       security:
         - sessionCookie: []
@@ -480,6 +543,131 @@ components:
           format: int64
         totalPages:
           type: integer
+    FaqHighlights:
+      type: object
+      required: [mostViewedLast7Days, recentlyViewed, topicsMostViewedToday]
+      properties:
+        mostViewedLast7Days:
+          type: array
+          description: 전체 사용자 기준 최근 7일 조회수 순 FAQ
+          items:
+            $ref: '#/components/schemas/FaqMostViewed'
+        recentlyViewed:
+          type: array
+          description: 현재 로그인 사용자가 최근에 연 FAQ를 항목별 최신순으로 반환
+          items:
+            $ref: '#/components/schemas/FaqSummary'
+        topicsMostViewedToday:
+          type: array
+          description: 전체 사용자 기준 오늘 카테고리·주제별 열람 횟수 순위
+          items:
+            $ref: '#/components/schemas/FaqTopicView'
+    FaqMostViewed:
+      type: object
+      required: [id, category, topic, title, contentSnippet, viewCount]
+      properties:
+        id:
+          type: integer
+          format: int64
+        category:
+          type: string
+        topic:
+          type: string
+        title:
+          type: string
+        contentSnippet:
+          type: string
+        viewCount:
+          type: integer
+          format: int64
+          description: 최근 7일 열람 횟수
+    FaqTopicView:
+      type: object
+      required: [category, topic, viewCount]
+      properties:
+        category:
+          type: string
+        topic:
+          type: string
+        viewCount:
+          type: integer
+          format: int64
+    FaqStatistics:
+      type: object
+      required: [categoryId, category, days, totalFaqCount, viewCount, viewedFaqCount, uniqueViewerCount, dailyViews, topicViews, topFaqs]
+      properties:
+        categoryId:
+          type: integer
+          format: int64
+        category:
+          type: string
+        days:
+          type: integer
+        totalFaqCount:
+          type: integer
+          format: int64
+          description: 해당 대분류에 등록된 FAQ 수
+        viewCount:
+          type: integer
+          format: int64
+          description: 선택 기간의 FAQ 총 열람 횟수
+        viewedFaqCount:
+          type: integer
+          format: int64
+          description: 선택 기간에 한 번 이상 열람된 서로 다른 FAQ 수
+        uniqueViewerCount:
+          type: integer
+          format: int64
+          description: 선택 기간에 한 번 이상 열람한 서로 다른 계정 수
+        dailyViews:
+          type: array
+          items:
+            $ref: '#/components/schemas/FaqDailyStats'
+        topicViews:
+          type: array
+          items:
+            $ref: '#/components/schemas/FaqTopicStats'
+        topFaqs:
+          type: array
+          items:
+            $ref: '#/components/schemas/FaqTopItemStats'
+    FaqDailyStats:
+      type: object
+      required: [date, viewCount, uniqueViewerCount]
+      properties:
+        date:
+          type: string
+          format: date
+        viewCount:
+          type: integer
+          format: int64
+        uniqueViewerCount:
+          type: integer
+          format: int64
+    FaqTopicStats:
+      type: object
+      required: [topic, viewCount]
+      properties:
+        topic:
+          type: string
+        viewCount:
+          type: integer
+          format: int64
+    FaqTopItemStats:
+      type: object
+      required: [id, topic, title, viewCount]
+      properties:
+        id:
+          type: integer
+          format: int64
+        topic:
+          type: string
+        title:
+          type: string
+        viewCount:
+          type: integer
+          format: int64
+          description: 선택 기간의 FAQ 열람 횟수
     FaqSummary:
       type: object
       required: [id, category, topic, title, contentSnippet]

@@ -121,7 +121,9 @@ function createFaqCard(faq, expandedIds, onFaqToggle) {
   const button = document.createElement("button");
   const answerId = `answer-${safeId(faq.id)}`;
   const expanded = expandedIds.has(Number(faq.id));
+  if (expanded) card.classList.add("faq-card-expanded");
   button.className = "faq-question";
+  if (!faq.topic) button.classList.add("faq-question-no-topic");
   button.type = "button";
   button.setAttribute("aria-expanded", String(expanded));
   button.setAttribute("aria-controls", answerId);
@@ -130,6 +132,10 @@ function createFaqCard(faq, expandedIds, onFaqToggle) {
   const id = document.createElement("span");
   id.className = "faq-id";
   id.textContent = faq.id;
+  const topic = document.createElement("span");
+  topic.className = "faq-topic";
+  topic.textContent = faq.topic ?? "";
+  topic.hidden = !faq.topic;
   const title = document.createElement("span");
   title.className = "faq-title";
   title.textContent = faq.title;
@@ -140,7 +146,7 @@ function createFaqCard(faq, expandedIds, onFaqToggle) {
   chevron.setAttribute("aria-hidden", "true");
   chevron.width = 16;
   chevron.height = 16;
-  button.append(id, title, chevron);
+  button.append(id, topic, title, chevron);
   card.append(button);
 
   if (expanded) {

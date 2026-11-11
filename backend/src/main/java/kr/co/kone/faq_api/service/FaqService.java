@@ -5,18 +5,33 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import kr.co.kone.faq_api.api.ApiException;
 import kr.co.kone.faq_api.repository.FaqRepository;
 import kr.co.kone.faq_api.repository.FaqRepository.CategoryRow;
+import kr.co.kone.faq_api.repository.FaqRepository.DailyStatisticsRow;
 import kr.co.kone.faq_api.repository.FaqRepository.FaqRow;
+import kr.co.kone.faq_api.repository.FaqRepository.PopularFaqRow;
+import kr.co.kone.faq_api.repository.FaqRepository.PopularTopicRow;
+import kr.co.kone.faq_api.repository.FaqRepository.RecentFaqRow;
+import kr.co.kone.faq_api.repository.FaqRepository.StatisticsSummaryRow;
+import kr.co.kone.faq_api.repository.FaqRepository.TopFaqStatisticsRow;
+import kr.co.kone.faq_api.repository.FaqRepository.TopicStatisticsRow;
 
 import static kr.co.kone.faq_api.api.ApiModels.FaqCategoryResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqHighlightsResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqMostViewedResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqDailyStatsResponse;
 import static kr.co.kone.faq_api.api.ApiModels.FaqPageResponse;
 import static kr.co.kone.faq_api.api.ApiModels.FaqResponse;
 import static kr.co.kone.faq_api.api.ApiModels.FaqSummaryResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqStatisticsResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqTopItemStatsResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqTopicStatsResponse;
+import static kr.co.kone.faq_api.api.ApiModels.FaqTopicViewResponse;
 
 /** FAQ 검색 순위, 필터·페이지 처리와 공개 응답 변환을 담당한다. */
 @Service
@@ -35,6 +50,56 @@ public class FaqService {
 		return faqRepository.findCategories().stream()
 				.map(this::toCategoryResponse)
 				.toList();
+	}
+
+	/** 첫 화면의 전체 사용자 주간 조회 순위·당일 주제 집계와 현재 사용자의 최근 열람을 반환한다. */
+	public FaqHighlightsResponse getHighlights(String username, int limit) {
+		if (!StringUtils.hasText(username)) {
+			throw badRequest("로그인 사용자 정보가 필요합니다.");
+		}
+		if (limit < 1 || limit > 10) {
+			throw badRequest("limit은 1부터 10 사이여야 합니다.");
+		}
+
+		List<FaqMostViewedResponse> mostViewed = faqRepository.findMostViewedLast7Days(limit).stream()
+				.map(this::toMostViewedResponse)
+				.toList();
+		List<FaqSummaryResponse> recentlyViewed = faqRepository.findRecentlyViewed(username, limit).stream()
+				.map(this::toSummaryResponse)
+				.toList();
+		List<FaqTopicViewResponse> popularTopics = faqRepository.findMostViewedTopicsToday(limit).stream()
+				.map(this::toTopicViewResponse)
+				.toList();
+		return new FaqHighlightsResponse(mostViewed, recentlyViewed, popularTopics);
+	}
+
+	/** 대분류별 조회 통계를 지정한 기간으로 집계해 반환한다. */
+	public FaqStatisticsResponse getStatistics(long categoryId, int days) {
+		if (categoryId < 1) {
+			throw badRequest("categoryId는 1 이상의 정수여야 합니다.");
+		}
+		if (days != 7 && days != 30 && days != 90) {
+			throw badRequest("days는 7, 30, 90 중 하나여야 합니다.");
+		}
+
+		CategoryRow category = faqRepository.findCategories().stream()
+				.filter(item -> item.id() == categoryId)
+				.findFirst()
+				.orElseThrow(this::notFound);
+		StatisticsSummaryRow summary = faqRepository.findStatisticsSummary(categoryId, days);
+		List<FaqDailyStatsResponse> dailyViews = faqRepository.findDailyStatistics(categoryId, days).stream()
+				.map(this::toDailyStatisticsResponse)
+				.toList();
+		List<FaqTopicStatsResponse> topicViews = faqRepository.findTopicStatistics(categoryId, days).stream()
+				.map(this::toTopicStatisticsResponse)
+				.toList();
+		List<FaqTopItemStatsResponse> topFaqs = faqRepository.findTopFaqStatistics(categoryId, days, 10).stream()
+				.map(this::toTopFaqStatisticsResponse)
+				.toList();
+
+		return new FaqStatisticsResponse(category.id(), category.name(), days,
+				summary.totalFaqCount(), summary.viewCount(), summary.viewedFaqCount(), summary.uniqueViewerCount(),
+				dailyViews, topicViews, topFaqs);
 	}
 
 	/** 검색·필터 결과를 정렬하고 요청한 페이지 크기로 잘라 반환한다. */
@@ -88,8 +153,9 @@ public class FaqService {
 				faq.content(), faq.keywords());
 	}
 
-	public void recordOpen(long id) {
-		if (id < 1 || !faqRepository.incrementOpenCount(id)) {
+	@Transactional
+	public void recordOpen(long id, String username) {
+		if (id < 1 || !StringUtils.hasText(username) || !faqRepository.recordOpen(id, username)) {
 			throw notFound();
 		}
 	}
@@ -188,8 +254,36 @@ public class FaqService {
 	}
 
 	private FaqSummaryResponse toSummaryResponse(FaqRow faq) {
-		String snippet = faq.content().substring(0, Math.min(faq.content().length(), CONTENT_SNIPPET_LENGTH));
-		return new FaqSummaryResponse(faq.id(), faq.category(), faq.topic(), faq.title(), snippet);
+		return new FaqSummaryResponse(faq.id(), faq.category(), faq.topic(), faq.title(), snippet(faq.content()));
+	}
+
+	private FaqSummaryResponse toSummaryResponse(RecentFaqRow faq) {
+		return new FaqSummaryResponse(faq.id(), faq.category(), faq.topic(), faq.title(), snippet(faq.content()));
+	}
+
+	private FaqMostViewedResponse toMostViewedResponse(PopularFaqRow faq) {
+		return new FaqMostViewedResponse(faq.id(), faq.category(), faq.topic(), faq.title(),
+				snippet(faq.content()), faq.viewCount());
+	}
+
+	private FaqTopicViewResponse toTopicViewResponse(PopularTopicRow topic) {
+		return new FaqTopicViewResponse(topic.category(), topic.topic(), topic.viewCount());
+	}
+
+	private FaqDailyStatsResponse toDailyStatisticsResponse(DailyStatisticsRow row) {
+		return new FaqDailyStatsResponse(row.date().toString(), row.viewCount(), row.uniqueViewerCount());
+	}
+
+	private FaqTopicStatsResponse toTopicStatisticsResponse(TopicStatisticsRow row) {
+		return new FaqTopicStatsResponse(row.topic(), row.viewCount());
+	}
+
+	private FaqTopItemStatsResponse toTopFaqStatisticsResponse(TopFaqStatisticsRow row) {
+		return new FaqTopItemStatsResponse(row.id(), row.topic(), row.title(), row.viewCount());
+	}
+
+	private String snippet(String content) {
+		return content.substring(0, Math.min(content.length(), CONTENT_SNIPPET_LENGTH));
 	}
 
 	private ApiException badRequest(String message) {

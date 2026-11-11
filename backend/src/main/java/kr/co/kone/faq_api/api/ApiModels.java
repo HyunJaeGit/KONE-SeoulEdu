@@ -43,4 +43,30 @@ public final class ApiModels {
 	public record FaqPageResponse(List<FaqSummaryResponse> items, int page, int size,
 			long totalElements, int totalPages) {
 	}
+
+	public record FaqHighlightsResponse(List<FaqMostViewedResponse> mostViewedLast7Days,
+			List<FaqSummaryResponse> recentlyViewed, List<FaqTopicViewResponse> topicsMostViewedToday) {
+	}
+
+	public record FaqMostViewedResponse(long id, String category, String topic, String title,
+			String contentSnippet, long viewCount) {
+	}
+
+	public record FaqTopicViewResponse(String category, String topic, long viewCount) {
+	}
+
+	public record FaqStatisticsResponse(long categoryId, String category, int days,
+			long totalFaqCount, long viewCount, long viewedFaqCount, long uniqueViewerCount,
+			List<FaqDailyStatsResponse> dailyViews, List<FaqTopicStatsResponse> topicViews,
+			List<FaqTopItemStatsResponse> topFaqs) {
+	}
+
+	public record FaqDailyStatsResponse(String date, long viewCount, long uniqueViewerCount) {
+	}
+
+	public record FaqTopicStatsResponse(String topic, long viewCount) {
+	}
+
+	public record FaqTopItemStatsResponse(long id, String topic, String title, long viewCount) {
+	}
 }

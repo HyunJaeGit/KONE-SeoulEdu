@@ -20,15 +20,20 @@
           <section aria-labelledby="browse-title">
             <div class="browse-toolbar">
               <h1 id="browse-title">FAQ 목록</h1>
-              <label class="browse-category-select">
-                <span>카테고리</span>
-                <select id="browse-category-filter" aria-label="FAQ 카테고리">
-                  <option value="">전체 카테고리</option>
-                  <option value="유지보수">유지보수</option>
-                  <option value="2027년 양품화 사업">2027년 양품화 사업</option>
-                  <option value="2027년 디벗 재배치·여분기기 수거 사업">2027년 디벗 재배치·여분기기 수거 사업</option>
-                </select>
-              </label>
+              <div class="browse-filters" aria-label="FAQ 분류 필터">
+                <label class="browse-category-select">
+                  <span>카테고리</span>
+                  <select id="browse-category-filter" aria-label="FAQ 카테고리">
+                    <option value="">전체 카테고리</option>
+                  </select>
+                </label>
+                <label class="browse-category-select">
+                  <span>세부 주제</span>
+                  <select id="browse-topic-filter" aria-label="FAQ 세부 주제" disabled>
+                    <option value="">전체 주제</option>
+                  </select>
+                </label>
+              </div>
             </div>
             <div class="browse-results-toolbar">
               <p class="result-count" id="result-count" aria-live="polite">FAQ 데이터를 준비하고 있습니다.</p>

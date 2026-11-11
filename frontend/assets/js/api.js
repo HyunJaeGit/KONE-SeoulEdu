@@ -79,6 +79,16 @@ export function getFaqPage({ q, categoryId, topic, page = 1, size = 20, sort = "
   return apiRequest(`/api/faqs?${params}`);
 }
 
+export function getFaqHighlights(limit = 5) {
+  const params = new URLSearchParams({ limit: String(limit) });
+  return apiRequest(`/api/faqs/highlights?${params}`);
+}
+
+export function getFaqStatistics(categoryId, days = 30) {
+  const params = new URLSearchParams({ categoryId: String(categoryId), days: String(days) });
+  return apiRequest(`/api/faq-statistics?${params}`);
+}
+
 export function getFaqDetail(id) {
   return apiRequest(`/api/faqs/${encodeURIComponent(id)}`);
 }

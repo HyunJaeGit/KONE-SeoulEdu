@@ -16,6 +16,7 @@ const state = {
   details: new Map(),
   categories: [],
   category: params.get("category") ?? "",
+  topic: params.get("topic") ?? "",
   page: Math.max(1, Number(params.get("page")) || 1),
   totalElements: 0,
   totalPages: 0,
@@ -24,6 +25,7 @@ const state = {
   loadError: false,
 };
 let faqRequestNumber = 0;
+let topicRequestNumber = 0;
 
 /** 로그인한 사용자의 카테고리 탐색 화면을 초기화합니다. */
 async function initialize() {
@@ -38,12 +40,22 @@ async function initialize() {
 
     select.addEventListener("change", async () => {
       state.category = select.value;
+      state.topic = "";
+      state.page = 1;
+      state.expandedIds.clear();
+      await updateTopics();
+      updateUrl(undefined, "");
+      await loadFaqs();
+    });
+    document.querySelector("#browse-topic-filter").addEventListener("change", async (event) => {
+      state.topic = event.target.value;
       state.page = 1;
       state.expandedIds.clear();
       updateUrl(undefined, "");
       await loadFaqs();
     });
     window.addEventListener("popstate", restoreUrlState);
+    await updateTopics();
     await loadFaqs();
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
@@ -55,6 +67,30 @@ async function initialize() {
   }
 }
 
+/** 선택 카테고리에서 사용 중인 topic만 모아 세부 주제 선택 상자를 채웁니다. */
+async function updateTopics() {
+  const requestNumber = ++topicRequestNumber;
+  const category = state.categories.find((item) => item.name === state.category);
+  const topics = new Set();
+  let page = 1;
+  let totalPages = 1;
+  do {
+    const result = await getFaqPage({ categoryId: category?.id, page, size: 100, sort: "recent" });
+    result.items.forEach((faq) => { if (faq.topic) topics.add(faq.topic); });
+    totalPages = result.totalPages;
+    page += 1;
+  } while (page <= totalPages);
+
+  if (requestNumber !== topicRequestNumber) return;
+  const select = document.querySelector("#browse-topic-filter");
+  select.replaceChildren(new Option("전체 주제", ""));
+  [...topics].sort((left, right) => left.localeCompare(right, "ko"))
+    .forEach((topic) => select.add(new Option(topic, topic)));
+  select.disabled = topics.size === 0;
+  if (topics.has(state.topic)) select.value = state.topic;
+  else state.topic = "";
+}
+
 /** FAQ 목록을 API에서 페이지 단위로 불러옵니다. */
 async function loadFaqs() {
   const requestNumber = ++faqRequestNumber;
@@ -63,7 +99,7 @@ async function loadFaqs() {
   render();
   try {
     const category = state.categories.find((item) => item.name === state.category);
-    const result = await getFaqPage({ categoryId: category?.id, page: state.page, size: PAGE_SIZE, sort: "recent" });
+    const result = await getFaqPage({ categoryId: category?.id, topic: state.topic, page: state.page, size: PAGE_SIZE, sort: "recent" });
     if (requestNumber !== faqRequestNumber) return;
     if (result.totalPages > 0 && state.page > result.totalPages) {
       state.page = result.totalPages;
@@ -167,6 +203,7 @@ function render() {
 function updateUrl(replace = false, faqId) {
   const nextParams = new URLSearchParams();
   if (state.category) nextParams.set("category", state.category);
+  if (state.topic) nextParams.set("topic", state.topic);
   if (state.page > 1) nextParams.set("page", String(state.page));
   const selectedFaq = faqId === undefined ? new URLSearchParams(window.location.search).get("faq") : faqId;
   if (selectedFaq) nextParams.set("faq", selectedFaq);
@@ -178,9 +215,11 @@ async function restoreUrlState() {
   const nextParams = new URLSearchParams(window.location.search);
   state.category = nextParams.get("category") ?? "";
   if (!state.categories.some((category) => category.name === state.category)) state.category = "";
+  state.topic = nextParams.get("topic") ?? "";
   state.page = Math.max(1, Number(nextParams.get("page")) || 1);
   state.expandedIds.clear();
   document.querySelector("#browse-category-filter").value = state.category;
+  await updateTopics();
   await loadFaqs();
 }
 

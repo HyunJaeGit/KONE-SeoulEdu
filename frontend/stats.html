@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8fa">
+    <title>FAQ 통계 | K-ONE SeoulEdu</title>
+    <link rel="stylesheet" href="assets/css/common.css">
+    <link rel="stylesheet" href="assets/css/stats.css">
+    <script type="module" src="assets/js/components.js?v=4"></script>
+    <script type="module" src="assets/js/stats.js"></script>
+  </head>
+  <body data-section="stats">
+    <div data-include="components/header.html"></div>
+    <div class="faq-workspace">
+      <div data-include="components/faq-sidebar.html"></div>
+      <div class="faq-content">
+        <main class="stats-shell">
+          <header class="stats-page-header">
+            <div>
+              <div class="stats-title-row">
+                <h1>FAQ 통계</h1>
+                <details class="help-tip">
+                  <summary aria-label="통계 안내">?</summary>
+                  <span class="help-tip-content">FAQ를 실제로 연 기록을 대분류와 기간별로 집계합니다. 검색 횟수는 포함하지 않으며, 상담사별 상세 내역은 표시하지 않습니다.</span>
+                </details>
+              </div>
+            </div>
+            <label class="period-control">
+              <span class="period-label">조회 기간
+                <details class="help-tip">
+                  <summary aria-label="조회 기간 안내">?</summary>
+                  <span class="help-tip-content">오늘을 포함한 최근 날짜 수입니다. 날짜별 경계는 DB의 날짜 기준을 따릅니다.</span>
+                </details>
+              </span>
+              <select id="stats-period" aria-label="조회 기간">
+                <option value="7">최근 7일</option>
+                <option value="30" selected>최근 30일</option>
+                <option value="90">최근 90일</option>
+              </select>
+            </label>
+          </header>
+          <nav id="stats-category-tabs" class="stats-category-tabs" aria-label="통계 대분류" role="tablist"></nav>
+          <p id="stats-status" class="stats-status" role="status" aria-live="polite">통계 데이터를 불러오는 중입니다.</p>
+          <section id="stats-content" class="stats-content" role="tabpanel" aria-busy="true" hidden>
+            <div class="stats-kpis" aria-label="기간 요약">
+              <article class="stats-kpi stats-kpi-primary">
+                <div class="stats-kpi-label"><span>전체 열람</span><details class="help-tip"><summary aria-label="전체 열람 지표 안내">?</summary><span class="help-tip-content">선택 기간에 모든 사용자가 FAQ를 연 횟수입니다. 같은 FAQ를 다시 열면 열람 횟수에 추가됩니다.</span></details></div>
+                <strong id="stat-total-views">0</strong>
+              </article>
+              <article class="stats-kpi">
+                <div class="stats-kpi-label"><span>열람된 FAQ</span><details class="help-tip"><summary aria-label="열람된 FAQ 지표 안내">?</summary><span class="help-tip-content">선택 기간에 한 번 이상 열린 서로 다른 FAQ 수입니다. 전체 등록 FAQ <span id="stat-total-faqs">0</span>개 중 열람된 항목입니다.</span></details></div>
+                <strong id="stat-viewed-faqs">0</strong>
+              </article>
+              <article class="stats-kpi">
+                <div class="stats-kpi-label"><span>열람 계정</span><details class="help-tip"><summary aria-label="열람 계정 지표 안내">?</summary><span class="help-tip-content">선택 기간에 한 번 이상 FAQ를 연 서로 다른 계정 수입니다. 개인의 계정명이나 열람 내역은 공개하지 않습니다.</span></details></div>
+                <strong id="stat-viewers">0</strong>
+              </article>
+              <article class="stats-kpi">
+                <div class="stats-kpi-label"><span>조회 주제</span><details class="help-tip"><summary aria-label="조회 주제 지표 안내">?</summary><span class="help-tip-content">선택 기간에 FAQ 열람이 1회 이상 발생한 서로 다른 세부 주제 수입니다.</span></details></div>
+                <strong id="stat-topic-count">0</strong>
+              </article>
+            </div>
+            <section class="stats-panel stats-trend-panel" aria-labelledby="daily-trend-title">
+              <div class="stats-panel-heading">
+                <div class="stats-panel-title"><h2 id="daily-trend-title">일별 열람 추이</h2><details class="help-tip"><summary aria-label="일별 열람 추이 안내">?</summary><span class="help-tip-content">실선은 날짜별 FAQ 열람 횟수, 점선은 해당 날짜에 열람한 서로 다른 계정 수입니다. 계정 수는 날짜마다 중복을 제거합니다.</span></details></div>
+                <div class="chart-legend" aria-label="차트 범례"><span><i class="legend-views"></i>열람 횟수</span><span><i class="legend-users"></i>열람 계정</span></div>
+              </div>
+              <div id="daily-trend-chart" class="daily-trend-chart"></div>
+            </section>
+            <div class="stats-detail-grid">
+              <section class="stats-panel" aria-labelledby="topic-breakdown-title">
+                <div class="stats-panel-heading"><div class="stats-panel-title"><h2 id="topic-breakdown-title">주제별 열람</h2><details class="help-tip"><summary aria-label="주제별 열람 안내">?</summary><span class="help-tip-content">선택한 대분류와 기간에 해당하는 FAQ 열람 횟수를 세부 주제별로 합산한 순위입니다.</span></details></div></div>
+                <ol id="topic-breakdown" class="topic-breakdown"></ol>
+              </section>
+              <section class="stats-panel" aria-labelledby="top-faqs-title">
+                <div class="stats-panel-heading"><div class="stats-panel-title"><h2 id="top-faqs-title">많이 열어본 FAQ</h2><details class="help-tip"><summary aria-label="많이 열어본 FAQ 안내">?</summary><span class="help-tip-content">선택한 대분류와 기간에서 열람 횟수가 많은 FAQ 10개입니다. 항목을 선택하면 해당 FAQ를 엽니다.</span></details></div></div>
+                <ol id="top-faqs" class="top-faq-list"></ol>
+              </section>
+            </div>
+          </section>
+        </main>
+        <div data-include="components/footer.html"></div>
+      </div>
+    </div>
+  </body>
+</html>

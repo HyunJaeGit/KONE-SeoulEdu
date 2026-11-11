@@ -1,5 +1,5 @@
 /* 공통 HTML 조각과 서버 세션 기반 헤더·FAQ 탐색 메뉴를 관리합니다. */
-import { getCurrentUser, getFaqCategories, signOut } from "./api.js";
+import { getCurrentUser, getFaqCategories, getFaqPage, signOut } from "./api.js";
 
 const SIDEBAR_COLLAPSED_KEY = "faq-sidebar-collapsed-v3";
 const FAQ_SUBMENU_EXPANDED_KEY = "faq-categories-expanded-v3";
@@ -87,17 +87,59 @@ async function initializeFaqSidebar() {
   let categoriesExpanded = readNavigationPreference(FAQ_SUBMENU_EXPANDED_KEY, true);
   try {
     const categories = await getFaqCategories();
-    categorySubmenu.replaceChildren(...categories.map((category) => {
+    const selectedTopic = new URLSearchParams(window.location.search).get("topic");
+    const categoryGroups = await Promise.all(categories.map(async (category) => {
+      const topics = await getCategoryTopics(category.id);
+      const group = document.createElement("section");
+      group.className = "faq-nav-category";
+      const row = document.createElement("div");
+      row.className = "faq-nav-category-row";
       const link = document.createElement("a");
-      link.dataset.faqCategory = category.name;
+      link.className = "faq-nav-category-link";
       link.href = `faq.html?${new URLSearchParams({ category: category.name })}`;
-      const label = document.createElement("span");
-      label.className = "faq-nav-label";
-      label.textContent = category.name;
-      link.append(label);
-      if (section === "faq" && selectedCategory === category.name) link.setAttribute("aria-current", "page");
-      return link;
+      link.textContent = category.name;
+      if (section === "faq" && selectedCategory === category.name && !selectedTopic) {
+        link.setAttribute("aria-current", "page");
+      }
+      const topicListId = `faq-topics-${category.id}`;
+      const toggle = document.createElement("button");
+      toggle.className = "faq-topic-toggle";
+      toggle.type = "button";
+      toggle.setAttribute("aria-controls", topicListId);
+      const expanded = selectedCategory === category.name;
+      toggle.setAttribute("aria-expanded", String(expanded));
+      toggle.setAttribute("aria-label", `${category.name} 세부 주제 ${expanded ? "접기" : "펼치기"}`);
+      const chevron = document.createElement("img");
+      chevron.src = "assets/img/chevron-down.svg";
+      chevron.alt = "";
+      chevron.setAttribute("aria-hidden", "true");
+      chevron.width = 12;
+      chevron.height = 12;
+      toggle.append(chevron);
+      const topicList = document.createElement("div");
+      topicList.id = topicListId;
+      topicList.className = "faq-topic-submenu";
+      topicList.hidden = !expanded;
+      topics.forEach((topic) => {
+        const topicLink = document.createElement("a");
+        topicLink.href = `faq.html?${new URLSearchParams({ category: category.name, topic })}`;
+        topicLink.textContent = topic;
+        if (section === "faq" && selectedCategory === category.name && selectedTopic === topic) {
+          topicLink.setAttribute("aria-current", "page");
+        }
+        topicList.append(topicLink);
+      });
+      toggle.addEventListener("click", () => {
+        const isExpanded = toggle.getAttribute("aria-expanded") === "true";
+        toggle.setAttribute("aria-expanded", String(!isExpanded));
+        toggle.setAttribute("aria-label", `${category.name} 세부 주제 ${isExpanded ? "펼치기" : "접기"}`);
+        topicList.hidden = isExpanded;
+      });
+      row.append(link, toggle);
+      group.append(row, topicList);
+      return group;
     }));
+    categorySubmenu.replaceChildren(...categoryGroups);
   } catch {
     categorySubmenu.replaceChildren();
   }
@@ -134,6 +176,20 @@ async function initializeFaqSidebar() {
     updateNavigation();
   });
   updateNavigation();
+}
+
+/** 카테고리에 등록된 FAQ 페이지를 읽어 중복 없는 세부 주제 목록을 반환합니다. */
+async function getCategoryTopics(categoryId) {
+  const topics = new Set();
+  let page = 1;
+  let totalPages = 1;
+  do {
+    const result = await getFaqPage({ categoryId, page, size: 100, sort: "recent" });
+    result.items.forEach((faq) => { if (faq.topic) topics.add(faq.topic); });
+    totalPages = result.totalPages;
+    page += 1;
+  } while (page <= totalPages);
+  return [...topics].sort((left, right) => left.localeCompare(right, "ko"));
 }
 
 function saveNavigationPreference(key, value) {

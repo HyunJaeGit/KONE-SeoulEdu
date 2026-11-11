@@ -1,0 +1,88 @@
+/* 통계 화면 전용 대시보드, KPI, 기간 추이와 순위 시각화를 담당합니다. */
+.stats-shell { width: min(100% - 56px, 1260px); margin: 0 auto; padding: 28px 0 34px; }
+.stats-page-header { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 15px; }
+.stats-page-header h1 { margin: 0; font-size: clamp(28px, 3vw, 36px); letter-spacing: -.045em; line-height: 1.2; }
+.stats-title-row, .stats-panel-title, .stats-kpi-label { display: flex; align-items: center; gap: 7px; }
+.stats-title-row .help-tip { margin-top: 2px; }
+.stats-panel-title h2 { margin: 0; }
+.stats-kpi-label { justify-content: space-between; }
+.stats-kpi-label > span { color: #778397; font-size: 11px; font-weight: 600; }
+.stats-kpi-label .help-tip > summary { width: 15px; height: 15px; font-size: 9px; }
+.stats-panel-title .help-tip > summary { width: 15px; height: 15px; font-size: 9px; }
+.period-label { display: inline-flex; align-items: center; gap: 6px; }
+.period-label .help-tip > summary { width: 14px; height: 14px; font-size: 9px; }
+.period-control { display: flex; align-items: center; gap: 10px; color: #687486; font-size: 11px; }
+.period-control select { min-width: 132px; height: 38px; padding: 0 30px 0 11px; border: 1px solid #d7dfeb; border-radius: 7px; color: #44536b; background: #fff; font-size: 12px; }
+.stats-category-tabs { display: flex; gap: 5px; margin-bottom: 10px; padding: 4px; border: 1px solid #dce3ed; border-radius: 9px; background: #e8edf4; }
+.stats-category-tab { min-height: 36px; padding: 0 15px; border: 1px solid transparent; border-radius: 6px; color: #67758b; background: transparent; font-size: 12px; font-weight: 600; transition: background .16s ease, box-shadow .16s ease, color .16s ease; }
+.stats-category-tab[aria-selected="true"] { border-color: #e4e9f1; color: #2f4c78; background: #fff; box-shadow: 0 1px 3px #263a5612; }
+.stats-category-tab:hover { color: #315fbe; }
+.stats-status { min-height: 14px; margin: 0 1px 8px; color: #7f8a9a; font-size: 10px; }
+.stats-status-busy::before { display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 50%; background: #6c8dc1; content: ""; animation: stats-pulse 1s ease-in-out infinite alternate; }
+.stats-status-error { color: #b64f58; }
+@keyframes stats-pulse { to { opacity: .35; transform: scale(.7); } }
+.stats-content[hidden] { display: none; }
+.stats-content[aria-busy="true"] { opacity: .56; pointer-events: none; }
+.stats-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-bottom: 13px; }
+.stats-kpi { display: flex; min-width: 0; min-height: 112px; flex-direction: column; justify-content: center; padding: 15px 17px; border: 1px solid #dce3ec; border-radius: 9px; background: #fff; box-shadow: 0 2px 8px #263b5608; }
+.stats-kpi strong { margin-top: 7px; color: #28364a; font-size: 25px; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1.1; }
+.stats-kpi-primary { border-color: #c9d6e9; background: linear-gradient(125deg, #fff 42%, #eff4fb); }
+.stats-kpi-primary strong { color: #315c9c; }
+.stats-panel { min-width: 0; padding: 18px; border: 1px solid #d9e1eb; border-radius: 9px; background: #fff; box-shadow: 0 2px 9px #263b5608; }
+.stats-trend-panel { margin-bottom: 13px; }
+.stats-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
+.stats-panel-heading h2 { color: #354155; font-size: 14px; letter-spacing: -.025em; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 12px; color: #788598; font-size: 9px; }
+.chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.chart-legend i { width: 12px; height: 3px; border-radius: 4px; background: #557dbb; }
+.chart-legend .legend-users { background: #7fb5aa; }
+.daily-trend-chart { width: 100%; overflow-x: auto; }
+.daily-trend-chart svg { display: block; width: 100%; min-width: 460px; height: auto; }
+.chart-grid-line { stroke: #edf0f4; stroke-width: 1; }
+.chart-axis-label { fill: #939eae; font-family: inherit; font-size: 10px; }
+.chart-date-label { font-size: 9px; }
+.chart-line { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; }
+.chart-line-views { stroke: #557dbb; }
+.chart-line-users { stroke: #7fb5aa; stroke-width: 2; stroke-dasharray: 5 4; }
+.chart-dot { stroke: #fff; stroke-width: 1.5; }
+.chart-dot-views { fill: #557dbb; }
+.chart-dot-users { fill: #7fb5aa; }
+.stats-detail-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 13px; }
+.topic-breakdown, .top-faq-list { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.topic-stat-row { min-width: 0; padding: 6px 3px; }
+.topic-stat-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; color: #536177; font-size: 10px; }
+.topic-stat-heading span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topic-stat-heading strong { flex: none; color: #75839a; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 600; }
+.topic-stat-track { display: block; height: 4px; overflow: hidden; margin-top: 7px; border-radius: 4px; background: #edf1f6; }
+.topic-stat-bar { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #a3b9d9, #5b7eaf); animation: stat-bar-in .5s ease both; animation-delay: var(--bar-delay, 0ms); transform-origin: left; }
+@keyframes stat-bar-in { from { opacity: .4; transform: scaleX(.04); } to { opacity: 1; transform: scaleX(1); } }
+.top-faq-row { min-width: 0; border-bottom: 1px solid #eff1f5; }
+.top-faq-row:last-child { border-bottom: 0; }
+.top-faq-row a { display: grid; min-height: 43px; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 4px 3px; border-radius: 5px; color: inherit; text-decoration: none; }
+.top-faq-row a:hover, .top-faq-row a:focus-visible { outline: none; background: #f5f7fb; }
+.top-faq-rank { color: #8794a6; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 700; }
+.top-faq-details { display: grid; min-width: 0; gap: 3px; }
+.top-faq-details strong { overflow: hidden; color: #49566b; font-size: 10px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.top-faq-details small { overflow: hidden; color: #9aa3b0; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.top-faq-row b { color: #647a9b; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; white-space: nowrap; }
+.stats-empty { display: grid; min-height: 90px; place-items: center; color: #929baa; font-size: 10px; text-align: center; }
+@media (max-width: 900px) {
+  .stats-shell { width: min(100% - 36px, 1260px); padding-top: 24px; }
+  .stats-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .stats-page-header { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .period-control { width: 100%; justify-content: space-between; }
+  .period-control select { flex: 1; max-width: 230px; }
+  .stats-category-tabs { width: 100%; }
+  .stats-category-tab { flex: 1; padding: 0 7px; font-size: 10px; }
+  .stats-kpis { gap: 8px; }
+  .stats-kpi { min-height: 100px; padding: 12px; }
+  .stats-kpi strong { font-size: 21px; }
+  .stats-detail-grid { grid-template-columns: 1fr; }
+  .stats-panel { padding: 14px 12px; }
+  .chart-legend { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
