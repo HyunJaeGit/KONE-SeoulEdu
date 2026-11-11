@@ -1,32 +1,39 @@
-/* 로그인 시안과 임시 관리자 회원 관리 화면의 입력·목록 상태를 관리합니다. */
-const description = document.querySelector("#auth-description");
-const demoAdmin = { username: "test", password: "1111" };
-const AUTH_SESSION_KEY = "faq-search-session";
-let loginMode = "user";
-let members = [
-  { id: 1, name: "김민준", username: "minjun.kim", password: "demo1", role: "상담원" },
-  { id: 2, name: "이서연", username: "seoyeon.lee", password: "demo2", role: "상담원" },
-  { id: 3, name: "박지우", username: "jiwoo.park", password: "demo3", role: "상담원" },
-];
+/* 로그인과 관리자 회원 화면을 실제 Spring Security 세션 API에 연결합니다. */
+import {
+  ApiError,
+  createMember,
+  deleteMember as deleteMemberApi,
+  getCurrentUser,
+  getMembers,
+  redirectToLogin,
+  signIn,
+  signOut,
+  updateMemberPassword,
+} from "./api.js";
 
-/** 일반·관리자 로그인 모드의 선택 상태를 전환합니다. */
+const description = document.querySelector("#auth-description");
+let loginMode = "user";
+let memberSearchTimer;
+let memberRequestNumber = 0;
+
+/** 일반·관리자 로그인 모드와 안내 문구를 전환합니다. */
 document.querySelectorAll("[data-mode]").forEach((button) => {
   button.addEventListener("click", () => {
     loginMode = button.dataset.mode;
     document.querySelectorAll("[data-mode]").forEach((modeButton) => {
-      const isActive = modeButton === button;
-      modeButton.classList.toggle("is-active", isActive);
-      modeButton.setAttribute("aria-pressed", String(isActive));
+      const active = modeButton === button;
+      modeButton.classList.toggle("is-active", active);
+      modeButton.setAttribute("aria-pressed", String(active));
     });
     if (description) {
-      description.textContent = button.dataset.mode === "admin"
+      description.textContent = loginMode === "admin"
         ? "관리자 계정으로 로그인해 계정을 관리하세요."
-        : "계정 정보를 입력해 로그인하세요.";
+        : "상담원 계정으로 로그인해 FAQ를 확인하세요.";
     }
   });
 });
 
-/** 비밀번호 표시 버튼은 입력 화면 확인을 위한 프런트 동작입니다. */
+/** 비밀번호 표시 버튼의 화면 상태를 전환합니다. */
 document.querySelectorAll("[data-toggle-password]").forEach((button) => {
   button.addEventListener("click", () => {
     const input = document.getElementById(button.dataset.togglePassword);
@@ -37,36 +44,54 @@ document.querySelectorAll("[data-toggle-password]").forEach((button) => {
   });
 });
 
-document.querySelector("#login-form")?.addEventListener("submit", (event) => {
+document.querySelector("#login-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  if (loginMode !== "admin") {
-    showMessage("#login-message", "일반 사용자 로그인은 계정 저장소 연결 후 사용할 수 있습니다.");
-    return;
+  const button = event.currentTarget.querySelector('[type="submit"]');
+  button.disabled = true;
+  showMessage("#login-message", "로그인 중입니다.");
+  try {
+    const user = await signIn(String(form.get("username")).trim(), String(form.get("password")));
+    const expectedRole = loginMode === "admin" ? "ADMIN" : "COUNSELOR";
+    if (user.role !== expectedRole) {
+      await signOut().catch(() => {});
+      throw new Error(loginMode === "admin" ? "관리자 권한 계정으로 로그인해 주세요." : "상담원 계정으로 로그인해 주세요.");
+    }
+    dispatchSessionChange(user);
+    const returnPath = getSafeReturnPath();
+    window.location.href = returnPath ?? (user.role === "ADMIN" ? "admin.html" : "index.html");
+  } catch (error) {
+    showMessage("#login-message", error.message || "아이디 또는 비밀번호를 확인하세요.");
+  } finally {
+    button.disabled = false;
   }
-  if (form.get("username") !== demoAdmin.username || form.get("password") !== demoAdmin.password) {
-    showMessage("#login-message", "아이디 또는 비밀번호를 확인하세요.");
-    return;
-  }
-  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ username: demoAdmin.username, role: "admin" }));
-  window.dispatchEvent(new Event("auth-session-changed"));
-  window.location.href = "index.html";
 });
 
-document.querySelector("#admin-login-form")?.addEventListener("submit", (event) => {
+document.querySelector("#admin-login-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
-  if (form.get("username") !== demoAdmin.username || form.get("password") !== demoAdmin.password) {
-    showMessage("#admin-message", "아이디 또는 비밀번호를 확인하세요.");
-    return;
+  const button = event.currentTarget.querySelector('[type="submit"]');
+  button.disabled = true;
+  showMessage("#admin-message", "로그인 중입니다.");
+  try {
+    const user = await signIn(String(form.get("username")).trim(), String(form.get("password")));
+    if (user.role !== "ADMIN") {
+      await signOut().catch(() => {});
+      throw new Error("관리자 권한 계정으로 로그인해 주세요.");
+    }
+    dispatchSessionChange(user);
+    showAdminDashboard(user);
+  } catch (error) {
+    showMessage("#admin-message", error.message || "아이디 또는 비밀번호를 확인하세요.");
+  } finally {
+    button.disabled = false;
   }
-  const session = { username: demoAdmin.username, role: "admin" };
-  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(session));
-  window.dispatchEvent(new Event("auth-session-changed"));
-  showAdminDashboard(session);
 });
 
-document.querySelector("#member-search")?.addEventListener("input", renderMembers);
+document.querySelector("#member-search")?.addEventListener("input", () => {
+  window.clearTimeout(memberSearchTimer);
+  memberSearchTimer = window.setTimeout(loadMembers, 250);
+});
 document.querySelector("#add-member")?.addEventListener("click", () => openMemberDialog());
 document.querySelector("#close-dialog")?.addEventListener("click", closeMemberDialog);
 document.querySelector("#cancel-dialog")?.addEventListener("click", closeMemberDialog);
@@ -74,126 +99,158 @@ document.querySelector("#member-dialog")?.addEventListener("click", (event) => {
   if (event.target === event.currentTarget) closeMemberDialog();
 });
 
-document.querySelector("#member-form")?.addEventListener("submit", (event) => {
+document.querySelector("#member-form")?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const id = Number(form.get("id"));
-  const username = String(form.get("username")).trim();
-  const password = String(form.get("password")).trim();
-  const duplicate = members.some((member) => member.username.toLowerCase() === username.toLowerCase() && member.id !== id);
-  if (duplicate) {
-    showMessage("#member-form-message", "이미 사용 중인 아이디입니다.");
-    return;
+  const formElement = event.currentTarget;
+  const form = new FormData(formElement);
+  const id = String(form.get("id") ?? "");
+  const username = String(form.get("username") ?? "").trim();
+  const password = String(form.get("password") ?? "");
+  const button = formElement.querySelector('[type="submit"]');
+  button.disabled = true;
+  showMessage("#member-form-message", "저장 중입니다.");
+  try {
+    if (id) await updateMemberPassword(id, password);
+    else await createMember(username, password);
+    closeMemberDialog();
+    formElement.reset();
+    await loadMembers();
+  } catch (error) {
+    showMessage("#member-form-message", error.message || "회원 정보를 저장하지 못했습니다.");
+  } finally {
+    button.disabled = false;
   }
-
-  const existingMember = members.find((current) => current.id === id);
-  const member = {
-    id: id || Date.now(),
-    name: String(form.get("name")).trim(),
-    username,
-    password: password || existingMember?.password || "",
-    role: "상담원",
-  };
-  if (id) members = members.map((current) => current.id === id ? member : current);
-  else members = [member, ...members];
-  closeMemberDialog();
-  renderMembers();
 });
 
-/** 현재 브라우저 메모리에 있는 데모 회원을 필터링해 표에 표시합니다. */
-function renderMembers() {
+/** 서버 회원 검색 결과를 화면에 표시합니다. 늦게 도착한 이전 검색 응답은 무시합니다. */
+async function loadMembers() {
   const body = document.querySelector("#member-rows");
   if (!body) return;
-  const query = document.querySelector("#member-search").value.trim().toLocaleLowerCase("ko-KR");
-  const filtered = members.filter((member) => `${member.name} ${member.username}`.toLocaleLowerCase("ko-KR").includes(query));
-  body.replaceChildren(...filtered.map(createMemberRow));
-  document.querySelector("#member-empty").hidden = filtered.length > 0;
-  document.querySelector("#members-summary").textContent = `전체 ${members.length}명 중 ${filtered.length}명 표시`;
-  document.querySelector("#total-count").textContent = String(members.length);
+  const requestNumber = ++memberRequestNumber;
+  const query = document.querySelector("#member-search").value.trim();
+  showMessage("#member-form-message", "회원 목록을 불러오는 중입니다.");
+  try {
+    const members = await getMembers(query);
+    if (requestNumber !== memberRequestNumber) return;
+    body.replaceChildren(...members.map(createMemberRow));
+    document.querySelector("#member-empty").hidden = members.length > 0;
+    document.querySelector("#members-summary").textContent = `검색 결과 ${members.length}명`;
+    document.querySelector("#total-count").textContent = String(members.length);
+    showMessage("#member-form-message", "");
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      window.location.href = "login.html?return=admin.html";
+      return;
+    }
+    showMessage("#member-form-message", error.message || "회원 목록을 불러오지 못했습니다.");
+  }
 }
 
 function createMemberRow(member) {
   const row = document.createElement("tr");
-  const identity = document.createElement("td");
-  const name = document.createElement("div");
-  name.className = "member-name";
-  name.textContent = member.name;
+  const usernameCell = document.createElement("td");
   const username = document.createElement("div");
-  username.className = "member-username";
+  username.className = "member-name";
   username.textContent = member.username;
-  identity.append(name, username);
+  usernameCell.append(username);
 
   const roleCell = document.createElement("td");
   const role = document.createElement("span");
   role.className = "role-chip";
-  role.textContent = "상담원";
+  role.textContent = member.role === "ADMIN" ? "관리자" : "상담원";
   roleCell.append(role);
+
   const actionCell = document.createElement("td");
   const edit = document.createElement("button");
   edit.type = "button";
   edit.className = "edit-member";
-  edit.textContent = "수정";
-  edit.setAttribute("aria-label", `${member.name} 회원 정보 수정`);
+  edit.textContent = "비밀번호 변경";
+  edit.setAttribute("aria-label", `${member.username} 비밀번호 변경`);
   edit.addEventListener("click", () => openMemberDialog(member));
   const remove = document.createElement("button");
   remove.type = "button";
   remove.className = "delete-member";
   remove.textContent = "삭제";
-  remove.setAttribute("aria-label", `${member.name} 회원 계정 삭제`);
+  remove.setAttribute("aria-label", `${member.username} 회원 계정 삭제`);
   remove.addEventListener("click", () => deleteMember(member));
   actionCell.append(edit, remove);
-  row.append(identity, roleCell, actionCell);
+  row.append(usernameCell, roleCell, actionCell);
   return row;
 }
 
-/** 삭제 확인 후 시연 회원 목록에서 계정을 제거합니다. */
-function deleteMember(member) {
-  if (!window.confirm(`${member.name} (${member.username}) 계정을 삭제할까요?`)) return;
-  members = members.filter((current) => current.id !== member.id);
-  renderMembers();
-}
-
-/** 신규 또는 기존 회원 정보를 입력하는 다이얼로그를 엽니다. */
+/** 생성 또는 비밀번호 변경 다이얼로그를 엽니다. */
 function openMemberDialog(member = null) {
   const form = document.querySelector("#member-form");
   form.reset();
   document.querySelector("#member-id").value = member?.id ?? "";
-  document.querySelector("#member-dialog-title").textContent = member ? "회원 정보 수정" : "회원 개설";
-  document.querySelector("#member-name").value = member?.name ?? "";
-  document.querySelector("#member-username").value = member?.username ?? "";
-  document.querySelector("#member-username").readOnly = Boolean(member);
-  const passwordInput = document.querySelector("#member-password");
-  passwordInput.value = "";
-  passwordInput.required = !member;
-  passwordInput.placeholder = member ? "변경할 비밀번호 (4자 이상)" : "4자 이상 입력";
+  document.querySelector("#member-dialog-title").textContent = member ? "비밀번호 변경" : "상담원 계정 개설";
+  const username = document.querySelector("#member-username");
+  username.value = member?.username ?? "";
+  username.readOnly = Boolean(member);
+  username.required = !member;
+  const password = document.querySelector("#member-password");
+  password.value = "";
+  password.required = true;
+  password.placeholder = "8자 이상 입력";
   showMessage("#member-form-message", "");
   document.querySelector("#member-dialog").showModal();
-  document.querySelector("#member-name").focus();
+  (member ? password : username).focus();
+}
+
+/** 삭제 승인 후 API에서 계정을 제거하고 현재 검색 결과를 다시 가져옵니다. */
+async function deleteMember(member) {
+  if (!window.confirm(`${member.username} 계정을 삭제할까요?`)) return;
+  try {
+    await deleteMemberApi(member.id);
+    await loadMembers();
+  } catch (error) {
+    showMessage("#member-form-message", error.message || "회원 계정을 삭제하지 못했습니다.");
+  }
 }
 
 function closeMemberDialog() {
   document.querySelector("#member-dialog")?.close();
 }
 
-/** 임시 관리자 세션이 있으면 관리자 대시보드를 표시합니다. */
-function showAdminDashboard(session) {
+/** 인증된 관리자라면 회원 대시보드를 열고 실제 username을 표시합니다. */
+function showAdminDashboard(user) {
   const loginView = document.querySelector("#admin-login-view");
   const dashboard = document.querySelector("#admin-dashboard");
-  if (!loginView || !dashboard || session?.role !== "admin") return;
+  if (!loginView || !dashboard || user?.role !== "ADMIN") return;
   loginView.hidden = true;
   dashboard.hidden = false;
-  renderMembers();
+  document.querySelector("#admin-username").textContent = user.username;
+  document.querySelector(".admin-avatar").textContent = user.username[0]?.toLocaleUpperCase("ko-KR") ?? "A";
+  loadMembers();
 }
 
-try {
-  const session = JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) ?? "null");
-  showAdminDashboard(session);
-} catch {
-  sessionStorage.removeItem(AUTH_SESSION_KEY);
+/** 페이지 재진입 때 서버 세션으로 관리자 화면 접근 여부를 복원합니다. */
+async function restoreAdminSession() {
+  if (!document.querySelector("#admin-dashboard")) return;
+  try {
+    const user = await getCurrentUser();
+    if (user.role === "ADMIN") showAdminDashboard(user);
+    else showMessage("#admin-message", "관리자 권한 계정으로 로그인해 주세요.");
+  } catch (error) {
+    if (!(error instanceof ApiError && error.status === 401)) {
+      showMessage("#admin-message", error.message || "로그인 상태를 확인하지 못했습니다.");
+    }
+  }
 }
 
-/** 현재는 서버가 연결되지 않았음을 폼 아래에 안내합니다. */
+function getSafeReturnPath() {
+  const candidate = new URLSearchParams(window.location.search).get("return");
+  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) return null;
+  return candidate;
+}
+
+function dispatchSessionChange(user) {
+  window.dispatchEvent(new CustomEvent("auth-session-changed", { detail: user }));
+}
+
 function showMessage(selector, message) {
   const element = document.querySelector(selector);
   if (element) element.textContent = message;
 }
+
+window.siteShellReady.then(restoreAdminSession).catch(restoreAdminSession);

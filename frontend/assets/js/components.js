@@ -1,9 +1,10 @@
-/* 공통 HTML 조각을 삽입하고 헤더 계정 메뉴를 관리합니다. */
-const AUTH_SESSION_KEY = "faq-search-session";
+/* 공통 HTML 조각과 서버 세션 기반 헤더·FAQ 탐색 메뉴를 관리합니다. */
+import { getCurrentUser, getFaqCategories, signOut } from "./api.js";
+
 const SIDEBAR_COLLAPSED_KEY = "faq-sidebar-collapsed-v3";
 const FAQ_SUBMENU_EXPANDED_KEY = "faq-categories-expanded-v3";
 
-/** 공통 헤더·푸터 HTML을 각 페이지의 슬롯에 불러옵니다. */
+/** 공통 헤더·푸터 조각을 불러온 뒤 계정 메뉴와 FAQ 메뉴를 초기화합니다. */
 async function loadSharedComponents() {
   const slots = [...document.querySelectorAll("[data-include]")];
   await Promise.all(slots.map(async (slot) => {
@@ -12,40 +13,52 @@ async function loadSharedComponents() {
     slot.innerHTML = await response.text();
   }));
   initializeHeaderAccount();
-  initializeFaqSidebar();
+  await initializeFaqSidebar();
 }
 
-/** 현재 탭의 시연 로그인 상태로 헤더 계정 메뉴를 갱신합니다. */
+/** 서버 세션의 사용자 정보에 따라 헤더 계정 메뉴를 표시합니다. */
 function initializeHeaderAccount() {
   const action = document.querySelector("#header-auth-action");
   const menu = document.querySelector("#account-menu");
   const trigger = document.querySelector("#account-menu-trigger");
   const panel = document.querySelector("#account-menu-panel");
   const adminLink = document.querySelector("#admin-page-link");
+  if (!action || !menu || !trigger || !panel || !adminLink) return;
 
-  const update = () => {
-    const session = readSession();
-    menu.hidden = !session;
-    action.textContent = session ? "로그아웃" : "로그인";
-    action.hidden = document.body.dataset.page === "login" && !session;
-    document.querySelector("#account-username").textContent = session?.username ?? "";
-    document.querySelector(".account-avatar").textContent = (session?.username?.[0] ?? "?").toLocaleUpperCase("ko-KR");
-    document.querySelector("#account-role").textContent = session?.role === "admin" ? "관리자 계정" : "일반 사용자";
-    adminLink.hidden = session?.role !== "admin";
+  let currentUser = null;
+  const update = (user) => {
+    currentUser = user;
+    menu.hidden = !user;
+    action.textContent = user ? "로그아웃" : "로그인";
+    action.hidden = document.body.dataset.page === "login" && !user;
+    document.querySelector("#account-username").textContent = user?.username ?? "";
+    document.querySelector(".account-avatar").textContent = (user?.username?.[0] ?? "?").toLocaleUpperCase("ko-KR");
+    document.querySelector("#account-role").textContent = user?.role === "ADMIN" ? "관리자 계정" : "상담원 계정";
+    adminLink.hidden = user?.role !== "ADMIN";
     trigger.setAttribute("aria-expanded", "false");
     panel.hidden = true;
   };
 
-  update();
-  window.addEventListener("auth-session-changed", update);
-  action.addEventListener("click", () => {
-    if (!readSession()) {
+  getCurrentUser().then(update).catch(() => update(null));
+  window.addEventListener("auth-session-changed", (event) => {
+    if (event.detail) update(event.detail);
+    else getCurrentUser().then(update).catch(() => update(null));
+  });
+  action.addEventListener("click", async () => {
+    if (!currentUser) {
       window.location.href = "login.html";
       return;
     }
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
-    update();
-    window.location.href = "login.html";
+    action.disabled = true;
+    try {
+      await signOut();
+      update(null);
+      window.dispatchEvent(new CustomEvent("auth-session-changed", { detail: null }));
+      window.location.href = "login.html";
+    } catch {
+      action.disabled = false;
+      action.textContent = "로그아웃 실패";
+    }
   });
   trigger.addEventListener("click", () => {
     const expanded = trigger.getAttribute("aria-expanded") === "true";
@@ -60,37 +73,39 @@ function initializeHeaderAccount() {
   });
 }
 
-function readSession() {
-  try {
-    const session = JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) ?? "null");
-    return session && typeof session.username === "string" ? session : null;
-  } catch {
-    return null;
-  }
-}
-
-/** FAQ 화면에서 현재 위치를 표시하고 대분류 경로를 설정합니다. */
-function initializeFaqSidebar() {
+/** DB에서 대분류를 읽어 FAQ 메뉴 링크를 만들고 탐색 상태를 연결합니다. */
+async function initializeFaqSidebar() {
   const section = document.body.dataset.section;
-  const selectedCategory = new URLSearchParams(window.location.search).get("category");
   const workspace = document.querySelector(".faq-workspace");
+  const categorySubmenu = document.querySelector("#faq-category-submenu");
   const sidebarToggle = document.querySelector("#faq-sidebar-toggle");
   const categoryToggle = document.querySelector("#faq-category-toggle");
-  const categorySubmenu = document.querySelector("#faq-category-submenu");
+  if (!workspace || !categorySubmenu || !sidebarToggle || !categoryToggle) return;
+
+  const selectedCategory = new URLSearchParams(window.location.search).get("category");
   let sidebarCollapsed = readNavigationPreference(SIDEBAR_COLLAPSED_KEY, false);
   let categoriesExpanded = readNavigationPreference(FAQ_SUBMENU_EXPANDED_KEY, true);
+  try {
+    const categories = await getFaqCategories();
+    categorySubmenu.replaceChildren(...categories.map((category) => {
+      const link = document.createElement("a");
+      link.dataset.faqCategory = category.name;
+      link.href = `faq.html?${new URLSearchParams({ category: category.name })}`;
+      const label = document.createElement("span");
+      label.className = "faq-nav-label";
+      label.textContent = category.name;
+      link.append(label);
+      if (section === "faq" && selectedCategory === category.name) link.setAttribute("aria-current", "page");
+      return link;
+    }));
+  } catch {
+    categorySubmenu.replaceChildren();
+  }
 
-  document.querySelectorAll("[data-faq-category]").forEach((link) => {
-    const category = link.dataset.faqCategory;
-    link.href = `faq.html?${new URLSearchParams({ category })}`;
-    if (section === "faq" && selectedCategory === category) link.setAttribute("aria-current", "page");
-  });
   document.querySelectorAll("[data-faq-nav]").forEach((link) => {
     const isCurrent = link.dataset.faqNav === section && (section !== "faq" || !selectedCategory);
     if (isCurrent) link.setAttribute("aria-current", "page");
   });
-
-  if (!workspace || !sidebarToggle || !categoryToggle || !categorySubmenu) return;
 
   const updateNavigation = () => {
     workspace.classList.toggle("is-sidebar-collapsed", sidebarCollapsed);
@@ -110,8 +125,8 @@ function initializeFaqSidebar() {
   categoryToggle.addEventListener("click", () => {
     if (sidebarCollapsed) {
       sidebarCollapsed = false;
-      saveNavigationPreference(SIDEBAR_COLLAPSED_KEY, false);
       categoriesExpanded = true;
+      saveNavigationPreference(SIDEBAR_COLLAPSED_KEY, false);
     } else {
       categoriesExpanded = !categoriesExpanded;
     }
@@ -121,23 +136,15 @@ function initializeFaqSidebar() {
   updateNavigation();
 }
 
-/** 탐색 메뉴의 접힘 설정을 현재 탭 세션에 저장합니다. */
 function saveNavigationPreference(key, value) {
-  try {
-    sessionStorage.setItem(key, String(value));
-  } catch {
-    // 저장할 수 없는 환경에서도 현재 화면의 메뉴 토글은 동작합니다.
-  }
+  try { sessionStorage.setItem(key, String(value)); } catch { /* 현재 화면의 메뉴 조작은 계속 허용합니다. */ }
 }
 
-/** 저장된 메뉴 설정을 읽고 값이 없거나 저장소가 막히면 기본값을 반환합니다. */
 function readNavigationPreference(key, defaultValue) {
   try {
     const value = sessionStorage.getItem(key);
     return value === null ? defaultValue : value === "true";
-  } catch {
-    return defaultValue;
-  }
+  } catch { return defaultValue; }
 }
 
 window.siteShellReady = loadSharedComponents();

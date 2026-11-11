@@ -7,7 +7,7 @@
     <title>관리자 페이지 | K-ONE SeoulEdu FAQ</title>
     <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/auth.css">
-    <script type="module" src="assets/js/components.js?v=3"></script>
+    <script type="module" src="assets/js/components.js?v=4"></script>
     <script type="module" src="assets/js/auth.js"></script>
   </head>
   <body class="admin-page" data-page="admin">
@@ -36,21 +36,14 @@
           <p class="form-message" id="admin-message" role="status" aria-live="polite"></p>
           <button class="primary-button" type="submit">관리자 로그인</button>
         </form>
-        <p class="demo-credential">임시 관리자 계정 <code>test</code> / <code>1111</code></p>
-        <div class="dev-help-row">
-          <span>개발용 임시 인증</span>
-          <details class="help-tip">
-            <summary aria-label="임시 인증 안내">?</summary>
-            <span class="help-tip-content">DB 연결 전 흐름 확인용입니다. 브라우저 코드에서 우회할 수 있으며 실제 보안 기능은 아닙니다.</span>
-          </details>
-        </div>
+        <p class="demo-credential">시스템에 등록된 관리자 계정으로 로그인하세요.</p>
       </section>
     </main>
 
     <div id="admin-dashboard" class="dashboard" hidden>
       <aside class="dashboard-sidebar">
         <a class="sidebar-link is-current" href="#members"><span aria-hidden="true">▦</span> 회원 관리</a>
-        <div class="sidebar-bottom"><span class="admin-avatar">A</span><span><strong>관리자</strong><small>임시 관리자</small></span></div>
+          <div class="sidebar-bottom"><span class="admin-avatar">A</span><span><strong id="admin-username">관리자</strong><small>관리자</small></span></div>
       </aside>
 
       <main class="dashboard-main" id="members">
@@ -69,8 +62,8 @@
         </section>
 
         <section class="members-panel" aria-labelledby="members-title">
-          <div class="members-panel-heading"><div><div class="section-title-with-help"><h2 id="members-title">회원 목록</h2><details class="help-tip"><summary aria-label="회원 목록 안내">?</summary><span class="help-tip-content">삭제하면 시연 목록에서 제거됩니다. DB 연결 전 변경 내용은 새로고침 시 초기화되며, 실제 개인정보나 배포용 계정 정보를 입력하지 마세요.</span></details></div><p id="members-summary" aria-live="polite"></p></div>
-            <label class="member-search"><span class="sr-only">회원 검색</span><span aria-hidden="true">⌕</span><input id="member-search" type="search" placeholder="이름 또는 아이디 검색"></label>
+          <div class="members-panel-heading"><div><div class="section-title-with-help"><h2 id="members-title">회원 목록</h2><details class="help-tip"><summary aria-label="회원 목록 안내">?</summary><span class="help-tip-content">DB에 저장된 username과 권한을 조회하고 상담원 계정을 관리합니다.</span></details></div><p id="members-summary" aria-live="polite"></p></div>
+            <label class="member-search"><span class="sr-only">회원 검색</span><span aria-hidden="true">⌕</span><input id="member-search" type="search" placeholder="username 검색"></label>
           </div>
           <div class="table-scroll">
             <table>
@@ -87,10 +80,9 @@
       <form id="member-form" class="member-form">
         <div class="dialog-heading"><div><h2 id="member-dialog-title">회원 개설</h2></div><button id="close-dialog" class="icon-button" type="button" aria-label="닫기">×</button></div>
         <input id="member-id" name="id" type="hidden">
-        <label for="member-name">이름</label><input id="member-name" name="name" required maxlength="40" placeholder="회원 이름">
-        <label for="member-username">아이디</label><input id="member-username" name="username" required minlength="4" maxlength="30" autocomplete="off" placeholder="로그인 아이디">
-        <div class="member-password-label"><label for="member-password">비밀번호</label><details class="help-tip inline-help"><summary aria-label="비밀번호 수정 도움말">?</summary><span class="help-tip-content">회원 수정 시 비워두면 기존 비밀번호를 유지하고, 입력하면 새 비밀번호로 변경합니다.</span></details></div>
-        <input id="member-password" name="password" type="password" required minlength="4" autocomplete="new-password" placeholder="4자 이상 입력">
+        <label for="member-username">username</label><input id="member-username" name="username" required minlength="1" maxlength="100" autocomplete="off" placeholder="로그인 username">
+        <div class="member-password-label"><label for="member-password">비밀번호</label><details class="help-tip inline-help"><summary aria-label="비밀번호 수정 도움말">?</summary><span class="help-tip-content">회원 수정 시 새 비밀번호를 입력하면 변경됩니다. 8자 이상이어야 합니다.</span></details></div>
+        <input id="member-password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password" placeholder="8자 이상 입력" title="8자 이상, UTF-8 기준 72바이트 이내">
         <p id="member-form-message" class="form-message" role="status" aria-live="polite"></p>
         <div class="dialog-actions"><button id="cancel-dialog" class="secondary-button" type="button">취소</button><button class="primary-button" type="submit">저장</button></div>
       </form>

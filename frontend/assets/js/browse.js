@@ -1,110 +1,187 @@
-/* FAQ 목록, 대분류 필터, 페이지와 열린 답변 상태를 관리합니다. */
-import { searchFaqs } from "./search.js";
-import { renderResults } from "./render.js";
+/* FAQ 탐색 목록을 로그인 세션과 대분류·페이지 API에 연결합니다. */
+import {
+  ApiError,
+  getCurrentUser,
+  getFaqCategories,
+  getFaqDetail,
+  getFaqPage,
+  recordFaqOpen,
+  redirectToLogin,
+} from "./api.js";
+import { renderResults, PAGE_SIZE } from "./render.js";
 
-const CATEGORIES = ["A/S 및 구매", "2027년 양품화 사업", "디벗 재배치 사업", "기타"];
-const initialParams = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 const state = {
   faqs: [],
-  category: initialParams.get("category") ?? "",
-  page: Math.max(1, Number(initialParams.get("page")) || 1),
+  details: new Map(),
+  categories: [],
+  category: params.get("category") ?? "",
+  page: Math.max(1, Number(params.get("page")) || 1),
+  totalElements: 0,
+  totalPages: 0,
   expandedIds: new Set(),
   loading: false,
   loadError: false,
 };
+let faqRequestNumber = 0;
 
-/** 목록 화면의 카테고리 선택과 브라우저 탐색 상태를 연결합니다. */
-function initialize() {
-  if (!CATEGORIES.includes(state.category)) state.category = "";
-  const categorySelect = document.querySelector("#browse-category-filter");
-  categorySelect.value = state.category;
-  categorySelect.addEventListener("change", () => {
-    state.category = categorySelect.value;
-    state.page = 1;
-    state.expandedIds.clear();
-    updateUrl();
-    render();
-  });
-  window.addEventListener("popstate", restoreUrlState);
-  loadFaqs();
-}
-
-/** FAQ 데이터를 읽고 목록을 다시 표시합니다. */
-async function loadFaqs() {
-  state.loading = true;
-  state.loadError = false;
-  render();
+/** 로그인한 사용자의 카테고리 탐색 화면을 초기화합니다. */
+async function initialize() {
   try {
-    const response = await fetch("data/faq.json", { cache: "no-store" });
-    if (!response.ok) throw new Error(`FAQ 데이터 응답 오류: ${response.status}`);
-    const data = await response.json();
-    if (!Array.isArray(data)) throw new Error("FAQ 데이터 형식이 배열이 아닙니다.");
-    state.faqs = data;
-    const faqId = new URLSearchParams(window.location.search).get("faq");
-    if (faqId && data.some((faq) => faq.id === faqId)) state.expandedIds.add(faqId);
-  } catch {
-    state.faqs = [];
+    await getCurrentUser();
+    state.categories = await getFaqCategories();
+    const select = document.querySelector("#browse-category-filter");
+    select.replaceChildren(new Option("전체 카테고리", ""));
+    state.categories.forEach((category) => select.add(new Option(category.name, category.name)));
+    if (state.categories.some((category) => category.name === state.category)) select.value = state.category;
+    else state.category = "";
+
+    select.addEventListener("change", async () => {
+      state.category = select.value;
+      state.page = 1;
+      state.expandedIds.clear();
+      updateUrl(undefined, "");
+      await loadFaqs();
+    });
+    window.addEventListener("popstate", restoreUrlState);
+    await loadFaqs();
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirectToLogin();
+      return;
+    }
     state.loadError = true;
-  } finally {
-    state.loading = false;
     render();
   }
 }
 
-/** 선택 카테고리에 맞는 질문 목록과 페이지 이동 UI를 표시합니다. */
+/** FAQ 목록을 API에서 페이지 단위로 불러옵니다. */
+async function loadFaqs() {
+  const requestNumber = ++faqRequestNumber;
+  state.loading = true;
+  state.loadError = false;
+  render();
+  try {
+    const category = state.categories.find((item) => item.name === state.category);
+    const result = await getFaqPage({ categoryId: category?.id, page: state.page, size: PAGE_SIZE, sort: "recent" });
+    if (requestNumber !== faqRequestNumber) return;
+    if (result.totalPages > 0 && state.page > result.totalPages) {
+      state.page = result.totalPages;
+      updateUrl(true);
+      return await loadFaqs();
+    }
+    state.faqs = result.items;
+    state.totalElements = result.totalElements;
+    state.totalPages = result.totalPages;
+    await includeDirectFaq(requestNumber);
+  } catch (error) {
+    if (requestNumber !== faqRequestNumber) return;
+    if (error instanceof ApiError && error.status === 401) {
+      redirectToLogin();
+      return;
+    }
+    state.loadError = true;
+  } finally {
+    if (requestNumber === faqRequestNumber) {
+      state.loading = false;
+      render();
+    }
+  }
+}
+
+async function includeDirectFaq(requestNumber) {
+  const id = Number(new URLSearchParams(window.location.search).get("faq"));
+  if (!Number.isInteger(id) || id < 1) return;
+  try {
+    const detail = state.details.get(id) ?? await getFaqDetail(id);
+    if (requestNumber !== faqRequestNumber) return;
+    state.details.set(id, detail);
+    if (!state.faqs.some((faq) => Number(faq.id) === id)) {
+      state.faqs = [detail];
+      state.totalElements = 1;
+      state.totalPages = 1;
+      state.page = 1;
+    }
+    state.expandedIds.add(id);
+    await recordFaqOpen(id).catch((error) => {
+      if (error instanceof ApiError && error.status === 401) redirectToLogin();
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) redirectToLogin();
+  }
+}
+
+/** FAQ 제목을 펼치거나 닫고, 열람 횟수를 서버에 기록합니다. */
+async function toggleFaq(id) {
+  if (state.expandedIds.has(id)) {
+    state.expandedIds.delete(id);
+    updateUrl(undefined, "");
+    render();
+    return;
+  }
+  try {
+    let detail = state.details.get(id);
+    if (!detail) {
+      detail = await getFaqDetail(id);
+      state.details.set(id, detail);
+    }
+    state.expandedIds.add(id);
+    updateUrl(undefined, String(id));
+    render();
+    await recordFaqOpen(id).catch((error) => {
+      if (error instanceof ApiError && error.status === 401) redirectToLogin();
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) {
+      redirectToLogin();
+      return;
+    }
+    state.loadError = true;
+    render();
+  }
+}
+
+/** 현재 API 페이지와 상세 본문을 결과 컴포넌트에 전달합니다. */
 function render() {
-  const visibleFaqs = searchFaqs(state.faqs, { category: state.category });
   renderResults({
-    faqs: visibleFaqs,
+    faqs: state.faqs.map((faq) => state.details.get(faq.id) ?? faq),
     page: state.page,
+    totalElements: state.totalElements,
+    totalPages: state.totalPages,
     query: "",
     loading: state.loading,
     loadError: state.loadError,
     expandedIds: state.expandedIds,
     onRetry: loadFaqs,
-    onPageChange: (page) => {
+    onFaqToggle: toggleFaq,
+    onPageChange: async (page) => {
       state.page = page;
-      updateUrl();
-      render();
+      state.expandedIds.clear();
+      updateUrl(undefined, "");
+      await loadFaqs();
       window.scrollTo({ top: document.querySelector(".browse-toolbar").offsetTop, behavior: "smooth" });
     },
   });
-  bindQuestionToggles();
 }
 
-/** FAQ 제목을 열거나 닫고 선택된 FAQ ID를 주소에 반영합니다. */
-function bindQuestionToggles() {
-  document.querySelectorAll(".faq-question").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = button.querySelector(".faq-id").textContent;
-      if (state.expandedIds.has(id)) state.expandedIds.delete(id);
-      else state.expandedIds.add(id);
-      updateUrl([...state.expandedIds].at(-1) ?? "");
-      render();
-    });
-  });
+function updateUrl(replace = false, faqId) {
+  const nextParams = new URLSearchParams();
+  if (state.category) nextParams.set("category", state.category);
+  if (state.page > 1) nextParams.set("page", String(state.page));
+  const selectedFaq = faqId === undefined ? new URLSearchParams(window.location.search).get("faq") : faqId;
+  if (selectedFaq) nextParams.set("faq", selectedFaq);
+  const url = `${window.location.pathname}${nextParams.size ? `?${nextParams}` : ""}`;
+  window.history[replace ? "replaceState" : "pushState"]({}, "", url);
 }
 
-/** 현재 필터, 페이지, 열린 답변을 URL로 보존합니다. */
-function updateUrl(faqId = "") {
-  const params = new URLSearchParams();
-  if (state.category) params.set("category", state.category);
-  if (state.page > 1) params.set("page", String(state.page));
-  if (faqId) params.set("faq", faqId);
-  window.history.pushState({}, "", `${window.location.pathname}${params.size ? `?${params}` : ""}`);
-}
-
-/** 뒤로 가기와 앞으로 가기에서 필터·페이지·답변 상태를 복원합니다. */
-function restoreUrlState() {
-  const params = new URLSearchParams(window.location.search);
-  const category = params.get("category") ?? "";
-  state.category = CATEGORIES.includes(category) ? category : "";
-  state.page = Math.max(1, Number(params.get("page")) || 1);
+async function restoreUrlState() {
+  const nextParams = new URLSearchParams(window.location.search);
+  state.category = nextParams.get("category") ?? "";
+  if (!state.categories.some((category) => category.name === state.category)) state.category = "";
+  state.page = Math.max(1, Number(nextParams.get("page")) || 1);
   state.expandedIds.clear();
-  const faqId = params.get("faq");
-  if (faqId) state.expandedIds.add(faqId);
   document.querySelector("#browse-category-filter").value = state.category;
-  render();
+  await loadFaqs();
 }
 
 window.siteShellReady.then(initialize).catch(initialize);

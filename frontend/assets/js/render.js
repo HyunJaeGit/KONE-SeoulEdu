@@ -61,7 +61,7 @@ function appendInline(parent, text) {
 }
 
 /** 현재 페이지의 결과 목록과 페이지 이동 UI를 화면에 표시합니다. */
-export function renderResults({ faqs, page, query, loading, loadError, onRetry, onPageChange, expandedIds }) {
+export function renderResults({ faqs, page, totalElements, totalPages, query, loading, loadError, onRetry, onPageChange, onFaqToggle, expandedIds }) {
   const results = document.querySelector("#results");
   const count = document.querySelector("#result-count");
   const pagination = document.querySelector("#pagination");
@@ -76,22 +76,21 @@ export function renderResults({ faqs, page, query, loading, loadError, onRetry, 
   }
   if (loadError) {
     count.textContent = "데이터를 불러오지 못했습니다.";
-    showMessage(results, "데이터 연결을 준비 중입니다.", "FAQ 데이터가 연결되면 이 화면에서 질문을 검색할 수 있습니다.", onRetry);
+    showMessage(results, "FAQ 데이터를 불러오지 못했습니다.", "서버 연결 상태를 확인한 뒤 다시 시도해 주세요.", onRetry);
     return;
   }
-  if (!faqs.length) {
+  if (!totalElements || !faqs.length) {
     count.textContent = query ? "검색 결과 0건" : "등록된 FAQ 0건";
     showMessage(results, query ? "검색 결과가 없습니다" : "FAQ 데이터를 준비하고 있습니다", query ? "검색어를 바꾸거나 필터를 초기화해 보세요." : "데이터가 연결되면 질문 목록이 여기에 표시됩니다.");
     return;
   }
 
-  const pageCount = Math.ceil(faqs.length / PAGE_SIZE);
-  const currentPage = Math.min(Math.max(page, 1), pageCount);
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
   const start = (currentPage - 1) * PAGE_SIZE;
-  count.textContent = `${faqs.length.toLocaleString("ko-KR")}건${query ? " 검색됨" : ""} · ${start + 1}–${Math.min(start + PAGE_SIZE, faqs.length)} 표시`;
+  count.textContent = `${totalElements.toLocaleString("ko-KR")}건${query ? " 검색됨" : ""} · ${start + 1}–${Math.min(start + faqs.length, totalElements)} 표시`;
 
-  faqs.slice(start, start + PAGE_SIZE).forEach((faq) => results.append(createFaqCard(faq, expandedIds)));
-  if (pageCount > 1) renderPagination(pagination, currentPage, pageCount, onPageChange);
+  faqs.forEach((faq) => results.append(createFaqCard(faq, expandedIds, onFaqToggle)));
+  if (totalPages > 1) renderPagination(pagination, currentPage, totalPages, onPageChange);
 }
 
 function showMessage(container, title, description = "", onRetry) {
@@ -116,16 +115,17 @@ function showMessage(container, title, description = "", onRetry) {
   container.append(state);
 }
 
-function createFaqCard(faq, expandedIds) {
+function createFaqCard(faq, expandedIds, onFaqToggle) {
   const card = document.createElement("article");
   card.className = "faq-card";
   const button = document.createElement("button");
   const answerId = `answer-${safeId(faq.id)}`;
-  const expanded = expandedIds.has(faq.id);
+  const expanded = expandedIds.has(Number(faq.id));
   button.className = "faq-question";
   button.type = "button";
   button.setAttribute("aria-expanded", String(expanded));
   button.setAttribute("aria-controls", answerId);
+  button.addEventListener("click", () => onFaqToggle(Number(faq.id)));
 
   const id = document.createElement("span");
   id.className = "faq-id";
@@ -167,7 +167,7 @@ function createFaqCard(faq, expandedIds) {
     copy.append(copyIcon, copyLabel);
     copy.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(`${faq.title}\n${faq.answerText ?? faq.answer}`);
+        await navigator.clipboard.writeText(`${faq.title}\n${faq.content ?? faq.answerText ?? faq.answer ?? ""}`);
         copyStatus.textContent = "복사했습니다.";
       } catch {
         copyStatus.textContent = "복사할 수 없습니다. 답변을 직접 선택해 복사해 주세요.";
@@ -176,7 +176,7 @@ function createFaqCard(faq, expandedIds) {
     });
     toolbar.append(copyStatus, copy);
     answer.append(toolbar);
-    renderMarkdown(faq.answer, answer);
+    renderMarkdown(faq.content ?? faq.answerText ?? faq.answer, answer);
     card.append(answer);
   }
 
