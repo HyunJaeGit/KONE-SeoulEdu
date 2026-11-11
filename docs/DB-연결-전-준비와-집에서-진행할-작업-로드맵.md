@@ -1,13 +1,15 @@
 # DB 연결 전 준비와 집에서 진행할 작업 로드맵
 
+> 역할: 프로젝트 단계·현재 진행 상황·후속 작업을 확인하는 로드맵. 구체적인 기능 기준·FAQ 기준·DB 설계·실습 명령은 각각 담당 문서를 따른다.
+
 이 문서는 FAQ 사이트의 현재 구현 상태를 기준으로, DB를 연결하기 전에 준비할 일과 집에서 로컬 DB·서버·배포를 진행할 순서를 정리한다. DB 종류나 호스팅 서비스는 사용자가 실제 작업 환경을 확인한 뒤 결정한다.
 
 ## 현재 구조 분석
 
 | 영역 | 현재 파일·동작 | 현재 한계 |
 |---|---|---|
-| 검색 홈 | `faq-search-site/index.html`, `assets/js/app.js` | `data/faq.json`을 브라우저에서 직접 읽음 |
-| FAQ 목록 | `faq-search-site/faq.html`, `assets/js/browse.js` | JSON을 직접 읽고 카테고리 필터·페이지 상태를 관리 |
+| 검색 홈 | `frontend/index.html`, `assets/js/app.js` | `data/faq.json`을 브라우저에서 직접 읽음 |
+| FAQ 목록 | `frontend/faq.html`, `assets/js/browse.js` | JSON을 직접 읽고 카테고리 필터·페이지 상태를 관리 |
 | 검색·표시 | `assets/js/search.js`, `assets/js/render.js` | 화면 검색·결과 표시를 담당하며 서버 요청은 없음 |
 | 공통 UI | `components/`, `assets/js/components.js`, `assets/css/common.css` | 공통 헤더·푸터·사이드바 및 화면 상태 관리 |
 | 로그인·회원 관리 | `login.html`, `admin.html`, `assets/js/auth.js` | 관리자 로그인과 회원 데이터가 브라우저 코드·메모리에만 있음 |
@@ -51,16 +53,17 @@
 
 | 더미 항목 | 위치 | 처리 시점 |
 |---|---|---|
-| 시연 FAQ 21건과 시연 답변·검색어 | `faq-search-site/data/faq.json` | 승인된 FAQ를 DB에 입력하고 API 조회를 확인한 뒤 공개 정적 파일에서 제거한다. 확인 전에 지우지 않는다. |
-| 임시 관리자 계정 `test / 1111` | `faq-search-site/assets/js/auth.js`, `faq-search-site/admin.html` | 서버 관리자 계정으로 로그인되는 것을 확인한 뒤 하드코딩 검증과 화면 안내를 제거한다. |
-| 샘플 회원 3명 및 `demo1`·`demo2`·`demo3` 비밀번호 | `faq-search-site/assets/js/auth.js`의 `members` 배열 | DB 회원 목록 API로 대체하고 샘플 개인정보·비밀번호를 제거한다. |
-| 브라우저 메모리 회원 생성·수정·삭제 | `faq-search-site/assets/js/auth.js` | 관리자 회원 API 연동 후 로컬 배열 기반 CRUD를 제거한다. |
-| `sessionStorage` 기반 시연 로그인 판정 | `faq-search-site/assets/js/auth.js`, `faq-search-site/assets/js/components.js` | 서버 세션 확인으로 교체한다. 사이드바 접힘 등 UI 선호 상태 저장은 인증 저장과 별개이므로 필요하면 유지한다. |
-| 더미 계정·데이터 설명 | `README.md`, 로그인·관리자 안내 | 실제 운영 절차에 맞춰 문구를 갱신한다. |
+| 시연 FAQ 21건과 시연 답변·검색어 | `frontend/data/faq.json` | 승인된 FAQ를 DB에 입력하고 API 조회를 확인한 뒤 공개 정적 파일에서 제거한다. 확인 전에 지우지 않는다. |
+| 임시 관리자 계정 `test / 1111` | `frontend/assets/js/auth.js`, `frontend/admin.html` | 서버 관리자 계정으로 로그인되는 것을 확인한 뒤 하드코딩 검증과 화면 안내를 제거한다. |
+| 샘플 회원 3명 및 `demo1`·`demo2`·`demo3` 비밀번호 | `frontend/assets/js/auth.js`의 `members` 배열 | DB 회원 목록 API로 대체하고 샘플 개인정보·비밀번호를 제거한다. |
+| 브라우저 메모리 회원 생성·수정·삭제 | `frontend/assets/js/auth.js` | 관리자 회원 API 연동 후 로컬 배열 기반 CRUD를 제거한다. |
+| `sessionStorage` 기반 시연 로그인 판정 | `frontend/assets/js/auth.js`, `frontend/assets/js/components.js` | 서버 세션 확인으로 교체한다. 사이드바 접힘 등 UI 선호 상태 저장은 인증 저장과 별개이므로 필요하면 유지한다. |
+| 더미 계정·데이터 설명 | `../README.md`, 로그인·관리자 안내 | 실제 운영 절차에 맞춰 문구를 갱신한다. |
 
 더미 파일과 임시 로그인을 먼저 지우면 현재 시연 흐름을 확인할 수 없게 된다. 운영 데이터와 API가 정상 동작하는 것을 확인한 뒤 위 순서대로 교체·제거한다. 기존 파일을 덮어쓰기 전에는 원본 FAQ와 사용자 데이터가 백업됐는지 확인한다.
 
 ## 관련 문서
 
-- 화면·데이터 구조와 제품 요구사항: `faq-search-site-plan.md`
-- 현재 실행 방법과 화면 설명: `README.md`
+- 화면·데이터 구조와 제품 요구사항: `frontend-plan.md`
+- 현재 실행 방법과 화면 설명: `../README.md`
+

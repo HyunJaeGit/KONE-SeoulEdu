@@ -1,5 +1,7 @@
 # Flyway·OpenAPI로 FAQ DB 연동하기: 실습 매뉴얼
 
+> 역할: 사용자가 직접 수행하는 DB·Flyway·OpenAPI·Spring Boot 실습 절차 안내. 기능 요구는 `faq-search-site-plan.md`, DB 설계는 `DB-스키마-설계-초안.md`를 기준으로 하며, 이 문서는 아직 실행하지 않은 단계를 완료로 간주하지 않는다.
+
 ## 1. 목적
 
 이 매뉴얼은 FAQ 데이터를 DB에 넣고, 백엔드 API로 제공해 기존 FAQ 검색 사이트에 연결하는 과정을 단계별로 진행하기 위한 작업 안내서다. 사용자가 SQL과 API를 직접 이해하고 기록할 수 있도록 각 단계에서 목적·파일·실행 결과를 확인한다.
@@ -88,13 +90,17 @@ docker info
 
 ```text
 KONE-SeoulEdu/
+  frontend/                    # FAQ 정적 프런트엔드
+  backend/                     # Spring Boot 프로젝트
+  docs/                        # 기획·DB 설계·FAQ·실습 문서
   compose.yaml                 # 로컬 MySQL 컨테이너 정의
   .env                         # 로컬 비밀값, Git에 추가하지 않음
-  .env.example                 # 비밀값 없는 설정 예시
-  backend/                     # Spring Boot 프로젝트
+  .gitignore
+  AGENTS.md                    # 프로젝트 개발 규칙
+  README.md
 ```
 
-기존 FAQ 프런트엔드 `faq-search-site/`는 유지한다. 백엔드는 별도 `backend/`에 둬 정적 사이트와 API 책임을 분리한다.
+프런트엔드와 백엔드는 한 저장소의 `frontend/`, `backend/` 형제 프로젝트로 관리한다. Docker Compose 파일과 `.env`는 저장소 루트에 둬 실행 위치와 환경변수 탐색을 단순하게 유지한다. 프로젝트 문서는 `docs/`에 모은다.
 
 ##### 0-3. Compose로 로컬 MySQL 준비
 
@@ -244,7 +250,7 @@ Phase 0 공식 참고 문서:
 
 경로와 응답은 제안 초안이며 구현 전 확정한다. API 명세에는 필드 형식, 필수 여부, 검색·페이지 규칙, 오류 응답, 인증 요구를 기록한다. 비밀번호 등 민감값이 응답에 포함되지 않도록 한다.
 
-현재 계약 초안은 `backend/src/main/resources/static/openapi.yaml`에서 관리하고, Swagger UI에서 이 YAML을 읽도록 설정한다. FAQ 콘텐츠 키는 `content`로 명세하고, 기존 프런트엔드 시연 데이터의 `answer`와 API 연결 단계에서 변환할 범위를 확인한다. DB 구조 제안은 루트의 `DB-스키마-설계-초안.md`에서 검토한다. 두 문서는 사용자 승인 전 제안이며 마이그레이션 SQL이 아니다.
+현재 계약 초안은 저장소 루트 기준 `backend/src/main/resources/static/openapi.yaml`에서 관리하고, Swagger UI에서 이 YAML을 읽도록 설정한다. FAQ 콘텐츠 키는 `content`로 명세하고, 기존 프런트엔드 시연 데이터의 `answer`와 API 연결 단계에서 변환할 범위를 확인한다. 확정된 논리 DB 구조는 `docs/DB-스키마-설계-초안.md`를 따른다. 이 문서는 마이그레이션 SQL이 아니다.
 
 Swagger UI 의존성은 Spring Boot 4.1.x 호환 범위의 springdoc 3.2.x를 사용한다. API 경로는 아직 서버 컨트롤러로 구현되지 않았으므로, Swagger UI는 우선 계약 문서 검토용이다.
 
@@ -427,8 +433,10 @@ Phase:
 
 ### 현재 단계와 다음 결정
 
-- FAQ DB 통합 원본 `FAQ-DB-통합-원본.md`에 제목·내용 형식 후보 41건을 정리했다. 모두 초안 또는 검토 필요 상태이며 승인 데이터는 아직 없다. `yangwiki/reference/`가 없어 일부 페이지 인용 PDF·PPTX 원문은 대조 전이다.
+- FAQ DB 통합 원본 `FAQ-DB-통합-원본.md`에 제목·내용 형식 후보 39건을 정리했다. 사용자 확인이 필요한 쟁점은 FAQ 데이터에서 제외하고 확인 후 반영한다.
 - OpenAPI 명세와 DB 스키마 설계안은 사용자 검토 전 초안이다.
 - Swagger UI는 OpenAPI YAML을 열도록 설정했지만 API 컨트롤러는 아직 없어 실제 요청 기능은 동작하지 않는다.
-- 사용자 검토 후 API 계약·스키마·키워드 저장 방식·대표 FAQ 데이터를 확정한다. `yangwiki/reference/` 부재로 첨부 원문 대조가 필요한 항목도 확인한다.
+- 사용자 검토 후 API 계약·스키마·키워드 저장 방식·대표 FAQ 데이터를 확정한다.
 - 승인된 설계를 반영한 뒤에만 다음 단계에서 Flyway 마이그레이션을 만든다.
+
+

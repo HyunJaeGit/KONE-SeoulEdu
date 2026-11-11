@@ -1,16 +1,18 @@
 # K-ONE SeoulEdu
 
+> 역할: 저장소 첫 안내 문서. 현재 폴더 구조와 주요 화면·로컬 실행 방법을 안내하며, 기획·DB·FAQ 세부 기준은 `docs/`의 담당 문서를 따른다.
+
 ## FAQ 검색 사이트
 
-FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이트로 개발합니다. 화면과 검색 로직은 `faq-search-site/`에 있습니다. 현재 FAQ 데이터 및 DB 연결은 아직 적용하지 않았습니다.
+FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리해 개발합니다. 정적 프런트엔드는 `frontend/`, Spring Boot API는 `backend/`에 둡니다. 프런트엔드의 FAQ 데이터는 현재 시연용 JSON이며 실제 API·DB 연결은 아직 완료되지 않았습니다.
 
-현재 코드 구조 분석, DB 연결 전 준비 사항, 집에서 진행할 DB·서버·배포 순서와 교체 대상 더미 데이터는 루트의 [DB 연결 전 준비와 집에서 진행할 작업 로드맵](DB-연결-전-준비와-집에서-진행할-작업-로드맵.md)을 참고하세요.
+현재 코드 구조 분석, DB 연결 전 준비 사항, 집에서 진행할 DB·서버·배포 순서와 교체 대상 더미 데이터는 `docs/`의 [DB 연결 전 준비와 집에서 진행할 작업 로드맵](docs/DB-연결-전-준비와-집에서-진행할-작업-로드맵.md)을 참고하세요.
 
 ### 현재 구현 범위
 
-- `faq-search-site/login.html`: 일반·관리자 로그인 화면
-- `faq-search-site/admin.html`: 임시 관리자 로그인과 회원 조회·개설·수정·삭제 화면
-- `faq-search-site/faq.html`: 질문 목록을 기본 표시하고 상단 카테고리 선택으로 목록을 필터링하는 화면
+- `frontend/login.html`: 일반·관리자 로그인 화면
+- `frontend/admin.html`: 임시 관리자 로그인과 회원 조회·개설·수정·삭제 화면
+- `frontend/faq.html`: 질문 목록을 기본 표시하고 상단 카테고리 선택으로 목록을 필터링하는 화면
 - FAQ 좌측 메뉴: 검색과 FAQ 분리, FAQ 아래 `A/S 및 구매`, `2027년 양품화 사업`, `디벗 재배치 사업`, `기타` 탐색
 - FAQ 좌측 메뉴와 대분류 하위 메뉴 각각 접기·펼치기 가능, 현재 탭에서 페이지 이동 후 상태 유지
 - FAQ 화면 우측 상단 계정 메뉴: 로그인 상태에서 사용자 아이디 및 관리자 페이지 이동 표시, 같은 위치에서 로그인·로그아웃 전환
@@ -20,7 +22,7 @@ FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이
 - ID·제목·답변·검색어 검색, 띄어쓰기 정규화, 검색어 우선순위
 - 구분·주제 필터와 검색 조건 초기화
 - 페이지당 20건 표시 및 이전·다음 페이지 이동
-- `faq-search-site/data/faq.json`의 시연용 더미 FAQ 21건으로 목록·검색·필터·페이징 확인
+- `frontend/data/faq.json`의 시연용 더미 FAQ 21건으로 목록·검색·필터·페이징 확인
 - 질문별 답변 펼침, 제한된 Markdown 표시, 답변 복사
 - 검색어·필터·페이지·FAQ 직접 접근 상태의 URL 반영
 - 데이터 로딩·오류·빈 결과 상태 안내
@@ -35,7 +37,21 @@ FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리된 정적 사이
 ### 파일 구성
 
 ```text
-faq-search-site/
+KONE-SeoulEdu/
+  frontend/       # HTML·CSS·JavaScript FAQ 사이트
+  backend/        # Java·Spring Boot API
+  docs/           # 기획·DB 설계·FAQ 자료·실습 매뉴얼
+  compose.yaml    # 로컬 MySQL
+  .env            # 로컬 비밀값, Git 추적 제외
+  .gitignore
+  AGENTS.md       # 프로젝트 개발 규칙
+  README.md
+```
+
+프런트엔드 내부 구조:
+
+```text
+frontend/
   index.html
   faq.html
   login.html
@@ -70,7 +86,7 @@ faq-search-site/
 python -m http.server 8000
 ```
 
-브라우저에서 `http://localhost:8000/faq-search-site/`를 엽니다. 서버를 종료하려면 터미널에서 `Ctrl+C`를 누릅니다.
+브라우저에서 `http://localhost:8000/frontend/`를 엽니다. 서버를 종료하려면 터미널에서 `Ctrl+C`를 누릅니다.
 
 ### 남은 작업
 
@@ -80,3 +96,4 @@ python -m http.server 8000
 - 로그인·관리자 권한 검증·회원 정보 저장 API와 DB 연결
 - 실제 데이터 기준 검색·접근성·모바일·오류 처리 검증
 - 배포 서비스와 접근 범위 결정 후 별도 주소로 배포
+

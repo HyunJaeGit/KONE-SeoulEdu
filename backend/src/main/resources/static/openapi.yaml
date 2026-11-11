@@ -315,13 +315,11 @@ components:
           format: password
     CurrentMember:
       type: object
-      required: [id, name, username, role]
+      required: [id, username, role]
       properties:
         id:
           type: integer
           format: int64
-        name:
-          type: string
         username:
           type: string
         role:
@@ -329,13 +327,11 @@ components:
           enum: [COUNSELOR, ADMIN]
     Member:
       type: object
-      required: [id, name, username, role]
+      required: [id, username, role]
       properties:
         id:
           type: integer
           format: int64
-        name:
-          type: string
         username:
           type: string
         role:
@@ -343,10 +339,8 @@ components:
           enum: [COUNSELOR, ADMIN]
     CreateMemberRequest:
       type: object
-      required: [name, username, password]
+      required: [username, password]
       properties:
-        name:
-          type: string
         username:
           type: string
         password:
@@ -354,10 +348,8 @@ components:
           format: password
     UpdateMemberRequest:
       type: object
-      required: [name]
+      required: []
       properties:
-        name:
-          type: string
         password:
           type: string
           format: password
