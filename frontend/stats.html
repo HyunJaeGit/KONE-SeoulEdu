@@ -60,6 +60,18 @@
                 <div class="stats-kpi-label"><span>조회 주제</span><details class="help-tip"><summary aria-label="조회 주제 지표 안내">?</summary><span class="help-tip-content">선택 기간에 FAQ 열람이 1회 이상 발생한 서로 다른 세부 주제 수입니다.</span></details></div>
                 <strong id="stat-topic-count">0</strong>
               </article>
+              <article class="stats-kpi">
+                <div class="stats-kpi-label"><span>일평균 열람</span><details class="help-tip"><summary aria-label="일평균 열람 안내">?</summary><span class="help-tip-content">선택한 기간의 전체 FAQ 열람 횟수를 기간 일수로 나눈 값입니다.</span></details></div>
+                <strong id="stat-daily-average">0</strong>
+              </article>
+              <article class="stats-kpi">
+                <div class="stats-kpi-label"><span>FAQ 열람률</span><details class="help-tip"><summary aria-label="FAQ 열람률 안내">?</summary><span class="help-tip-content">등록된 FAQ 중 선택 기간에 한 번 이상 열린 항목의 비율입니다.</span></details></div>
+                <strong id="stat-faq-coverage">0%</strong>
+              </article>
+              <article class="stats-kpi stats-kpi-compact">
+                <div class="stats-kpi-label"><span>최다 열람일</span><details class="help-tip"><summary aria-label="최다 열람일 안내">?</summary><span class="help-tip-content">선택한 기간 중 FAQ 열람이 가장 많았던 날짜와 열람 횟수입니다.</span></details></div>
+                <strong id="stat-peak-day">-</strong>
+              </article>
             </div>
             <section class="stats-panel stats-trend-panel" aria-labelledby="daily-trend-title">
               <div class="stats-panel-heading">
@@ -70,7 +82,7 @@
             </section>
             <div class="stats-detail-grid">
               <section class="stats-panel" aria-labelledby="topic-breakdown-title">
-                <div class="stats-panel-heading"><div class="stats-panel-title"><h2 id="topic-breakdown-title">주제별 열람</h2><details class="help-tip"><summary aria-label="주제별 열람 안내">?</summary><span class="help-tip-content">선택한 대분류와 기간에 해당하는 FAQ 열람 횟수를 세부 주제별로 합산한 순위입니다.</span></details></div></div>
+                <div class="stats-panel-heading"><div class="stats-panel-title"><h2 id="topic-breakdown-title">주제별 열람</h2><details class="help-tip"><summary aria-label="주제별 열람 안내">?</summary><span class="help-tip-content">선택한 대분류와 기간의 주제별 열람 횟수와 전체 열람 중 비중입니다. 막대는 전체 열람 대비 비율을 나타냅니다.</span></details></div></div>
                 <ol id="topic-breakdown" class="topic-breakdown"></ol>
               </section>
               <section class="stats-panel" aria-labelledby="top-faqs-title">

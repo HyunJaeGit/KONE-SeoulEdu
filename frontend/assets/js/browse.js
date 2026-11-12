@@ -17,6 +17,7 @@ const state = {
   categories: [],
   category: params.get("category") ?? "",
   topic: params.get("topic") ?? "",
+  sort: ["recent", "popular", "least"].includes(params.get("sort")) ? params.get("sort") : "recent",
   page: Math.max(1, Number(params.get("page")) || 1),
   totalElements: 0,
   totalPages: 0,
@@ -52,6 +53,15 @@ async function initialize() {
       state.page = 1;
       state.expandedIds.clear();
       updateUrl(undefined, "");
+      await loadFaqs();
+    });
+    const sortSelect = document.querySelector("#browse-sort");
+    sortSelect.value = state.sort;
+    sortSelect.addEventListener("change", async (event) => {
+      state.sort = event.target.value;
+      state.page = 1;
+      state.expandedIds.clear();
+      updateUrl(true, "");
       await loadFaqs();
     });
     window.addEventListener("popstate", restoreUrlState);
@@ -99,7 +109,7 @@ async function loadFaqs() {
   render();
   try {
     const category = state.categories.find((item) => item.name === state.category);
-    const result = await getFaqPage({ categoryId: category?.id, topic: state.topic, page: state.page, size: PAGE_SIZE, sort: "recent" });
+    const result = await getFaqPage({ categoryId: category?.id, topic: state.topic, page: state.page, size: PAGE_SIZE, sort: state.sort });
     if (requestNumber !== faqRequestNumber) return;
     if (result.totalPages > 0 && state.page > result.totalPages) {
       state.page = result.totalPages;
@@ -204,6 +214,7 @@ function updateUrl(replace = false, faqId) {
   const nextParams = new URLSearchParams();
   if (state.category) nextParams.set("category", state.category);
   if (state.topic) nextParams.set("topic", state.topic);
+  if (state.sort !== "recent") nextParams.set("sort", state.sort);
   if (state.page > 1) nextParams.set("page", String(state.page));
   const selectedFaq = faqId === undefined ? new URLSearchParams(window.location.search).get("faq") : faqId;
   if (selectedFaq) nextParams.set("faq", selectedFaq);
@@ -216,9 +227,11 @@ async function restoreUrlState() {
   state.category = nextParams.get("category") ?? "";
   if (!state.categories.some((category) => category.name === state.category)) state.category = "";
   state.topic = nextParams.get("topic") ?? "";
+  state.sort = ["recent", "popular", "least"].includes(nextParams.get("sort")) ? nextParams.get("sort") : "recent";
   state.page = Math.max(1, Number(nextParams.get("page")) || 1);
   state.expandedIds.clear();
   document.querySelector("#browse-category-filter").value = state.category;
+  document.querySelector("#browse-sort").value = state.sort;
   await updateTopics();
   await loadFaqs();
 }

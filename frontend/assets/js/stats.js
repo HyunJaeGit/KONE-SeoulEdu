@@ -84,9 +84,16 @@ function renderStatistics(data) {
   setMetric("#stat-total-faqs", data.totalFaqCount);
   setMetric("#stat-viewers", data.uniqueViewerCount);
   setMetric("#stat-topic-count", data.topicViews.length);
+  setMetric("#stat-daily-average", (Number(data.viewCount ?? 0) / Math.max(1, Number(data.days ?? 1))).toFixed(1));
+  const coverage = data.totalFaqCount ? (Number(data.viewedFaqCount ?? 0) / Number(data.totalFaqCount)) * 100 : 0;
+  document.querySelector("#stat-faq-coverage").textContent = coverage.toFixed(1) + "%";
+  const peakDay = data.dailyViews.reduce((peak, item) => Number(item.viewCount) > Number(peak?.viewCount ?? -1) ? item : peak, null);
+  document.querySelector("#stat-peak-day").textContent = peakDay
+    ? peakDay.date.slice(5).replace("-", ".") + " · " + Number(peakDay.viewCount).toLocaleString("ko-KR") + "회"
+    : "-";
   renderDailyTrend(data.dailyViews);
-  renderTopics(data.topicViews);
-  renderTopFaqs(data.topFaqs, data.category);
+  renderTopics(data.topicViews, data.viewCount);
+  renderTopFaqs(data.topFaqs, data.category, data.viewCount);
 }
 
 function setMetric(selector, value) {
@@ -147,14 +154,13 @@ function renderDailyTrend(dailyViews) {
   container.append(svg);
 }
 
-function renderTopics(topics) {
+function renderTopics(topics, totalViews) {
   const list = document.querySelector("#topic-breakdown");
   list.replaceChildren();
   if (!topics.length) {
     renderEmpty(list, "선택 기간의 주제별 열람 기록이 없습니다.");
     return;
   }
-  const max = Math.max(...topics.map((item) => item.viewCount));
   topics.forEach((topic, index) => {
     const item = document.createElement("li");
     item.className = "topic-stat-row";
@@ -163,13 +169,14 @@ function renderTopics(topics) {
     const name = document.createElement("span");
     name.textContent = topic.topic;
     const count = document.createElement("strong");
-    count.textContent = Number(topic.viewCount).toLocaleString("ko-KR") + "회";
+    const topicShare = totalViews ? (Number(topic.viewCount) / totalViews) * 100 : 0;
+    count.textContent = Number(topic.viewCount).toLocaleString("ko-KR") + "회 · " + topicShare.toFixed(1) + "%";
     heading.append(name, count);
     const track = document.createElement("span");
     track.className = "topic-stat-track";
     const bar = document.createElement("span");
     bar.className = "topic-stat-bar";
-    bar.style.width = Math.max(2, (topic.viewCount / max) * 100) + "%";
+    bar.style.width = Math.min(100, topicShare) + "%";
     bar.style.setProperty("--bar-delay", index * 35 + "ms");
     track.append(bar);
     item.append(heading, track);
@@ -177,7 +184,7 @@ function renderTopics(topics) {
   });
 }
 
-function renderTopFaqs(faqs, category) {
+function renderTopFaqs(faqs, category, totalViews) {
   const list = document.querySelector("#top-faqs");
   list.replaceChildren();
   if (!faqs.length) {
@@ -202,7 +209,8 @@ function renderTopFaqs(faqs, category) {
     topic.textContent = faq.topic + " · FAQ " + faq.id;
     details.append(title, topic);
     const count = document.createElement("b");
-    count.textContent = Number(faq.viewCount).toLocaleString("ko-KR") + "회";
+    const faqShare = totalViews ? (Number(faq.viewCount) / totalViews) * 100 : 0;
+    count.textContent = Number(faq.viewCount).toLocaleString("ko-KR") + "회 · " + faqShare.toFixed(1) + "%";
     link.append(rank, details, count);
     item.append(link);
     list.append(item);

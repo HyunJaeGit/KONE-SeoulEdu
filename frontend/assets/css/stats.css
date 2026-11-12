@@ -28,6 +28,7 @@
 .stats-kpi strong { margin-top: 7px; color: #28364a; font-size: 25px; font-variant-numeric: tabular-nums; letter-spacing: -.04em; line-height: 1.1; }
 .stats-kpi-primary { border-color: #c9d6e9; background: linear-gradient(125deg, #fff 42%, #eff4fb); }
 .stats-kpi-primary strong { color: #315c9c; }
+.stats-kpi-compact strong { font-size: 17px; letter-spacing: -.02em; }
 .stats-panel { min-width: 0; padding: 18px; border: 1px solid #d9e1eb; border-radius: 9px; background: #fff; box-shadow: 0 2px 9px #263b5608; }
 .stats-trend-panel { margin-bottom: 13px; }
 .stats-panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 10px; }
@@ -58,7 +59,7 @@
 @keyframes stat-bar-in { from { opacity: .4; transform: scaleX(.04); } to { opacity: 1; transform: scaleX(1); } }
 .top-faq-row { min-width: 0; border-bottom: 1px solid #eff1f5; }
 .top-faq-row:last-child { border-bottom: 0; }
-.top-faq-row a { display: grid; min-height: 43px; grid-template-columns: 24px minmax(0, 1fr) 44px; align-items: center; gap: 8px; padding: 4px 3px; border-radius: 5px; color: inherit; text-decoration: none; }
+.top-faq-row a { display: grid; min-height: 43px; grid-template-columns: 24px minmax(0, 1fr) minmax(68px, auto); align-items: center; gap: 8px; padding: 4px 3px; border-radius: 5px; color: inherit; text-decoration: none; }
 .top-faq-row a:hover, .top-faq-row a:focus-visible { outline: none; background: #f5f7fb; }
 .top-faq-rank { color: #8794a6; font-size: 9px; font-variant-numeric: tabular-nums; font-weight: 700; }
 .top-faq-details { display: grid; min-width: 0; gap: 3px; }

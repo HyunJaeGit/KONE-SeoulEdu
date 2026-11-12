@@ -165,10 +165,10 @@ paths:
             default: 20
         - name: sort
           in: query
-          description: 검색어가 없을 때의 정렬 기준
+          description: 검색어가 없을 때의 정렬 기준. popular는 조회수 내림차순, least는 조회수 오름차순, recent는 등록 시각 내림차순입니다.
           schema:
             type: string
-            enum: [popular, recent]
+            enum: [popular, least, recent]
             default: popular
       responses:
         '200':

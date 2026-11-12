@@ -37,7 +37,14 @@
             </div>
             <div class="browse-results-toolbar">
               <p class="result-count" id="result-count" aria-live="polite">FAQ 데이터를 준비하고 있습니다.</p>
-              <span class="sort-label">최근 등록순 <img class="chevron-icon" src="assets/img/chevron-down.svg" alt="" aria-hidden="true" width="14" height="14"></span>
+              <label class="browse-sort-control">
+                <span class="sr-only">FAQ 정렬</span>
+                <select id="browse-sort" aria-label="FAQ 정렬">
+                  <option value="recent">최근 등록순</option>
+                  <option value="popular">조회수 높은순</option>
+                  <option value="least">조회수 낮은순</option>
+                </select>
+              </label>
             </div>
             <div id="results" class="results-list" aria-live="polite" aria-busy="true"></div>
             <nav id="pagination" class="pagination" aria-label="결과 페이지"></nav>

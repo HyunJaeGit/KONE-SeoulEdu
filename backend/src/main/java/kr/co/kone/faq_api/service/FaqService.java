@@ -125,11 +125,15 @@ public class FaqService {
 			return new FaqPageResponse(items, page, size, total, totalPages);
 		}
 
-		Comparator<FaqRow> comparator = "recent".equals(sort)
-				? Comparator.comparing(FaqRow::createdAt).reversed().thenComparing(Comparator.comparingLong(FaqRow::id).reversed())
-				: Comparator.comparingLong(FaqRow::openCount).reversed()
-						.thenComparing(FaqRow::createdAt, Comparator.reverseOrder())
-						.thenComparing(Comparator.comparingLong(FaqRow::id).reversed());
+		Comparator<FaqRow> newestFirst = Comparator.comparing(FaqRow::createdAt).reversed()
+				.thenComparing(Comparator.comparingLong(FaqRow::id).reversed());
+		Comparator<FaqRow> comparator = switch (sort) {
+			case "recent" -> newestFirst;
+			case "least" -> Comparator.comparingLong(FaqRow::openCount)
+					.thenComparing(newestFirst);
+			default -> Comparator.comparingLong(FaqRow::openCount).reversed()
+					.thenComparing(newestFirst);
+		};
 		List<FaqRow> sorted = rows.stream().sorted(comparator).toList();
 		long total = sorted.size();
 		int totalPages = total == 0 ? 0 : (int) ((total + size - 1) / size);
@@ -177,8 +181,8 @@ public class FaqService {
 		if (size < 1 || size > MAX_PAGE_SIZE) {
 			throw badRequest("size는 1부터 100 사이의 정수여야 합니다.");
 		}
-		if (!"popular".equals(sort) && !"recent".equals(sort)) {
-			throw badRequest("sort는 popular 또는 recent여야 합니다.");
+		if (!"popular".equals(sort) && !"least".equals(sort) && !"recent".equals(sort)) {
+			throw badRequest("sort는 popular, least 또는 recent여야 합니다.");
 		}
 	}
 

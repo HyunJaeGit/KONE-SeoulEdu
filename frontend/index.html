@@ -47,8 +47,12 @@
 
           <section id="recent-searches" class="recent-searches" aria-label="최근 검색어" hidden>
             <h2 class="recent-searches-label">최근 검색</h2>
+            <details class="help-tip recent-search-help">
+              <summary aria-label="최근 검색 기록 안내">?</summary>
+              <span class="help-tip-content">Enter로 검색을 확정한 검색어만 이 브라우저에 저장됩니다.</span>
+            </details>
             <div id="recent-search-list" class="recent-search-list"></div>
-            <button id="clear-recent-searches" class="clear-recent-searches" type="button">기록 지우기</button>
+            <button id="clear-recent-searches" class="clear-recent-searches" type="button" aria-label="최근 검색 기록 지우기" title="최근 검색 기록 지우기">×</button>
           </section>
         </section>
 
@@ -59,8 +63,13 @@
             <section class="highlight-panel" aria-labelledby="weekly-views-heading">
               <div class="highlight-toolbar">
                 <div>
-                  <h2 id="weekly-views-heading">최근 7일 조회수 순</h2>
-                  <p class="result-count">전체 사용자가 최근 7일 동안 열어본 항목</p>
+                  <div class="section-title-with-help">
+                    <h2 id="weekly-views-heading">최근 7일 조회수 순</h2>
+                    <details class="help-tip">
+                      <summary aria-label="최근 7일 조회수 안내">?</summary>
+                      <span class="help-tip-content">전체 사용자가 최근 7일 동안 열어본 FAQ를 조회수 순으로 표시합니다.</span>
+                    </details>
+                  </div>
                 </div>
               </div>
               <ol id="weekly-views-list" class="highlight-list" aria-live="off" aria-busy="true"></ol>
@@ -79,9 +88,15 @@
           <section class="topic-analytics" aria-labelledby="topic-analytics-heading">
             <div class="topic-analytics-heading">
               <div>
-                <h2 id="topic-analytics-heading">오늘 많이 조회된 주제</h2>
-                <p class="result-count">전체 사용자 당일 열람 · 막대 길이는 1위 대비 비율</p>
+                <div class="section-title-with-help">
+                  <h2 id="topic-analytics-heading">금일 조회 통계</h2>
+                  <details class="help-tip">
+                    <summary aria-label="금일 조회 통계 안내">?</summary>
+                    <span class="help-tip-content">전체 사용자의 오늘 FAQ 열람을 주제별로 집계합니다. 막대 길이는 1위 조회수를 기준으로 한 상대 비율입니다.</span>
+                  </details>
+                </div>
               </div>
+              <a class="topic-analytics-more" href="stats.html" aria-label="FAQ 통계 페이지 더보기">더보기 <span aria-hidden="true">→</span></a>
             </div>
             <ol id="topic-analytics-list" class="topic-analytics-list" aria-label="조회가 많은 주제"></ol>
           </section>
