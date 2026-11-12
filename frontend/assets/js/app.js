@@ -67,9 +67,19 @@ async function initialize() {
       await loadView();
     });
     const input = document.querySelector("#search-input");
+    const searchForm = input.closest("form");
     input.addEventListener("compositionstart", () => { composing = true; });
     input.addEventListener("compositionend", () => { composing = false; scheduleSearch(input.value); });
     input.addEventListener("input", () => { if (!composing) scheduleSearch(input.value); });
+    input.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" || event.isComposing || composing || event.keyCode === 229) return;
+      event.preventDefault();
+      submitSearch(input.value);
+    });
+    searchForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!composing) submitSearch(input.value);
+    });
     window.addEventListener("popstate", restoreUrlState);
     await updateTopics();
     await loadView();
@@ -458,13 +468,27 @@ async function includeDirectFaq(requestNumber) {
 function scheduleSearch(value) {
   window.clearTimeout(searchTimer);
   searchTimer = window.setTimeout(async () => {
-    state.query = value.trim();
-    if (state.query) recordRecentSearch(state.query);
-    state.page = 1;
-    state.expandedIds.clear();
-    updateUrl({ faqId: "" });
-    await loadView();
+    await applySearch(value);
   }, 250);
+}
+
+/** Enter로 확정한 검색어만 최근 검색 기록에 저장하고 즉시 결과를 반영합니다. */
+function submitSearch(value) {
+  window.clearTimeout(searchTimer);
+  const query = value.trim();
+  if (!query) return applySearch("");
+
+  recordRecentSearch(query);
+  if (state.query !== query) return applySearch(query);
+}
+
+/** 최근 검색 칩 선택이나 실시간 검색 결과를 화면에 반영합니다. */
+async function applySearch(value) {
+  state.query = value.trim();
+  state.page = 1;
+  state.expandedIds.clear();
+  updateUrl({ faqId: "" });
+  await loadView();
 }
 
 const RECENT_SEARCH_LIMIT = 5;
@@ -509,8 +533,9 @@ function renderRecentSearches() {
     button.textContent = query;
     button.addEventListener("click", () => {
       const input = document.querySelector("#search-input");
+      window.clearTimeout(searchTimer);
       input.value = query;
-      scheduleSearch(query);
+      applySearch(query);
     });
     list.append(button);
   });

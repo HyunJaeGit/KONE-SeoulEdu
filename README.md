@@ -1,99 +1,87 @@
 # K-ONE SeoulEdu
 
-> 역할: 저장소 첫 안내 문서. 현재 폴더 구조와 주요 화면·로컬 실행 방법을 안내하며, 기획·DB·FAQ 세부 기준은 `docs/`의 담당 문서를 따른다.
+> 역할: 저장소 첫 안내 문서. 현재 폴더 구조와 로컬 실행 방법을 안내하며, 기획·DB·FAQ 세부 기준은 `docs/`의 담당 문서를 따른다.
 
-## FAQ 검색 사이트
+## 프로젝트 개요
 
-FAQ 검색 사이트는 기존 매뉴얼 프로젝트와 분리해 개발합니다. 정적 프런트엔드는 `frontend/`, Spring Boot API는 `backend/`에 둡니다. 프런트엔드의 FAQ 데이터는 현재 시연용 JSON이며 실제 API·DB 연결은 아직 완료되지 않았습니다.
+K-ONE SeoulEdu는 로그인 기반 FAQ 검색 사이트다. 정적 프런트엔드(`frontend/`), Java·Spring Boot API(`backend/`), MySQL 데이터베이스를 한 Git 저장소에서 관리한다. 로컬 MySQL은 Docker Compose로 실행하고 DB 구조와 초기 FAQ 변경은 Flyway 마이그레이션으로 관리한다.
 
-현재 코드 구조 분석, DB 연결 전 준비 사항, 집에서 진행할 DB·서버·배포 순서와 교체 대상 더미 데이터는 `docs/`의 [DB 연결 전 준비와 집에서 진행할 작업 로드맵](docs/DB-연결-전-준비와-집에서-진행할-작업-로드맵.md)을 참고하세요.
+## 현재 구현
 
-### 현재 구현 범위
+- 로그인·로그아웃·현재 사용자·CSRF 토큰을 포함한 세션 인증
+- FAQ 카테고리·주제·검색·페이징·상세 조회와 FAQ 열람 기록
+- 관리자 전용 상담원 계정 조회·개설·비밀번호 변경·삭제 API 및 화면
+- 검색 홈 대시보드와 최근 7일 조회 FAQ·최근 열람 항목·당일 조회 주제
+- 대분류·기간별 FAQ 통계 페이지
+- OpenAPI 명세와 Swagger UI
+- Flyway V1~V8 마이그레이션 파일
 
-- `frontend/login.html`: 일반·관리자 로그인 화면
-- `frontend/admin.html`: 임시 관리자 로그인과 회원 조회·개설·수정·삭제 화면
-- `frontend/faq.html`: 질문 목록을 기본 표시하고 상단 카테고리 선택으로 목록을 필터링하는 화면
-- FAQ 좌측 메뉴: 검색과 FAQ 분리, FAQ 아래 `A/S 및 구매`, `2027년 양품화 사업`, `디벗 재배치 사업`, `기타` 탐색
-- FAQ 좌측 메뉴와 대분류 하위 메뉴 각각 접기·펼치기 가능, 현재 탭에서 페이지 이동 후 상태 유지
-- FAQ 화면 우측 상단 계정 메뉴: 로그인 상태에서 사용자 아이디 및 관리자 페이지 이동 표시, 같은 위치에서 로그인·로그아웃 전환
-- FAQ·로그인·관리자 화면의 보조 설명은 `?` 아이콘 툴팁으로 제공하며 마우스·키보드·터치로 확인
-- 공통 헤더·푸터는 `components/`의 HTML 조각으로 관리하고, `common.css`와 화면별 CSS로 스타일 분리
-- 검색어 입력 후 200ms 지연 검색 및 한글 입력 조합 처리
-- ID·제목·답변·검색어 검색, 띄어쓰기 정규화, 검색어 우선순위
-- 구분·주제 필터와 검색 조건 초기화
-- 페이지당 20건 표시 및 이전·다음 페이지 이동
-- `frontend/data/faq.json`의 시연용 더미 FAQ 21건으로 목록·검색·필터·페이징 확인
-- 질문별 답변 펼침, 제한된 Markdown 표시, 답변 복사
-- 검색어·필터·페이지·FAQ 직접 접근 상태의 URL 반영
-- 데이터 로딩·오류·빈 결과 상태 안내
-- 모바일 화면 및 키보드 포커스 표시
+프런트엔드는 `frontend/data/faq.json`을 API 대신 사용하지 않는다. 해당 파일은 이전 정적 시연 자료로 남아 있으며 실제 화면 데이터는 인증된 백엔드 API에서 가져온다. V7·V8의 DB 적용 여부는 각 개발 DB의 `flyway_schema_history`에서 확인한다.
 
-현재 `data/faq.json`에는 화면 확인용 더미 데이터만 있습니다. 답변은 실제 상담 지침이 아니며, 실제 DB/API 연결 시 검토된 FAQ로 교체해야 합니다.
-
-로그인 화면은 `login.html`, 관리자 페이지는 `admin.html`에서 확인할 수 있습니다. DB 연결 전 관리자 화면 확인용 임시 계정은 `test` / `1111`입니다. 회원 계정은 이름·아이디·비밀번호만 입력하며 권한은 상담원으로 고정합니다. 관리자 화면에서 회원을 조회·개설·수정·삭제할 수 있습니다. 변경 사항은 브라우저 메모리에만 반영되어 새로고침하면 초기화됩니다. 임시 인증은 브라우저 코드에서 확인하므로 접근 통제가 아니며, 실제 배포 전 서버 인증과 권한 검증으로 교체해야 합니다.
-
-임시 관리자 로그인을 확인하려면 `login.html`에서 `관리자 모드`를 선택하고 계정 정보를 입력합니다. 로그인 후 FAQ 화면 우측 상단에 아이디가 표시되며, 아이디 메뉴의 `관리자 페이지`를 눌러 이동할 수 있습니다. `로그아웃`은 로그인 화면으로 돌아갑니다. 관리자 페이지에서 직접 로그인하는 흐름도 사용할 수 있습니다. 관리자 로그인 상태는 현재 브라우저 탭 세션 동안 유지됩니다. 일반 사용자 로그인은 계정 저장소 연결 전까지 동작하지 않습니다.
-
-### 파일 구성
+## 주요 폴더
 
 ```text
 KONE-SeoulEdu/
-  frontend/       # HTML·CSS·JavaScript FAQ 사이트
-  backend/        # Java·Spring Boot API
-  docs/           # 기획·DB 설계·FAQ 자료·실습 매뉴얼
-  compose.yaml    # 로컬 MySQL
-  .env            # 로컬 비밀값, Git 추적 제외
-  .gitignore
-  AGENTS.md       # 프로젝트 개발 규칙
-  README.md
+  frontend/       # HTML·CSS·JavaScript 화면
+  backend/        # Spring Boot API 및 Flyway 마이그레이션
+  docs/           # 기획·DB 설계·FAQ 자료·실습·진행 현황
+  compose.yaml    # 로컬 MySQL 서비스
+  .env            # 로컬 DB 비밀값, Git 추적 제외
+  AGENTS.md       # 프로젝트 공통 개발 규칙
 ```
 
-프런트엔드 내부 구조:
+## 로컬 실행
 
-```text
-frontend/
-  index.html
-  faq.html
-  login.html
-  admin.html
-  components/
-    header.html
-    footer.html
-    faq-sidebar.html
-  data/
-    faq.json           # 화면 확인용 더미 FAQ
-  assets/
-    img/k-one-mark.svg
-    img/chevron-down.svg
-    img/copy.svg
-    css/common.css
-    css/style.css
-    css/browse.css
-    css/auth.css
-    js/components.js
-    js/app.js       # 화면 상태, 데이터 로드, URL 상태
-    js/browse.js    # FAQ 대분류별 탐색 화면
-    js/search.js    # 검색 정규화, 필터링, 정렬
-    js/render.js    # 결과·답변·페이지 UI 표시
-    js/auth.js      # 로그인·관리자 화면 입력 동작
+### 준비
+
+- Docker Desktop 및 WSL 2
+- Java 21
+- 저장소 루트의 `.env`에 로컬 `MYSQL_ROOT_PASSWORD`, `MYSQL_PASSWORD`
+- `backend/src/main/resources/application-local.properties`에 로컬 DB 접속 설정
+- 최초 실행 시 필요한 경우 관리자 초기 생성 환경변수 `KONE_ADMIN_USERNAME`, `KONE_ADMIN_PASSWORD`
+
+`.env`와 `application-local.properties`는 Git에 포함하지 않는다. 새 PC에서는 두 파일을 저장소 밖의 안전한 설정값으로 다시 만든다. 실제 비밀번호를 채팅·스크린샷·Git에 기록하지 않는다.
+
+빈 `users` 테이블에 첫 관리자를 만들 때만 로컬 프로필에서 `app.bootstrap-admin.enabled=true`와 `KONE_ADMIN_USERNAME`, `KONE_ADMIN_PASSWORD`를 설정한다. 초기 생성이 끝나면 이 기능을 끄거나 설정을 제거한다. 기존 사용자 테이블이 비어 있지 않으면 초기 생성 기능은 시작을 중단한다.
+
+### MySQL 시작
+
+저장소 루트에서 PowerShell을 열고 실행한다.
+
+```powershell
+docker compose up -d mysql
+docker compose ps
 ```
 
-### 로컬 실행
+MySQL 컨테이너가 `Up` 상태인지 확인한다.
 
-저장소 루트에서 HTTP 서버를 실행합니다. HTML 파일을 직접 열면 브라우저의 JSON 로드 제한 등으로 사이트 동작 확인이 어렵습니다.
+### 백엔드 시작
 
-```bash
-python -m http.server 8000
+```powershell
+cd backend
+.\gradlew.bat bootRun
 ```
 
-브라우저에서 `http://localhost:8000/frontend/`를 엽니다. 서버를 종료하려면 터미널에서 `Ctrl+C`를 누릅니다.
+Spring Boot가 로컬 MySQL에 접속하면 Flyway가 아직 적용되지 않은 마이그레이션을 순서대로 실행한다. Swagger UI는 `http://localhost:8080/swagger-ui/index.html`에서 확인한다. 서버 종료는 실행 중인 터미널에서 `Ctrl+C`다.
 
-### 남은 작업
+### 프런트엔드 시작
 
-- 기존 자료 목록화와 FAQ 후보 추출·분류
-- 구분·주제 및 답변 작성 기준에 따른 대표 FAQ 작성과 검토
-- 합의된 데이터 저장 형식과 연결 방식으로 데이터 로드 구현
-- 로그인·관리자 권한 검증·회원 정보 저장 API와 DB 연결
-- 실제 데이터 기준 검색·접근성·모바일·오류 처리 검증
-- 배포 서비스와 접근 범위 결정 후 별도 주소로 배포
+VS Code Live Server로 `frontend/index.html`을 열거나 저장소 루트에서 정적 HTTP 서버를 실행한다.
 
+```powershell
+python -m http.server 5500
+```
+
+그 경우 브라우저에서 `http://localhost:5500/frontend/`로 접속한다. 백엔드 CORS는 로컬 개발 주소를 기준으로 설정돼 있다.
+
+### 통계 화면
+
+로그인 후 사이드바 아래쪽의 `통계` 메뉴에서 2027년 양품화 사업 및 유지보수의 기간별 통계를 확인한다. 화면의 지표는 DB 열람 이력 기준이다.
+
+## 진행 현황과 기준 문서
+
+- 단계별 구현·검증 및 남은 작업: [Flyway·OpenAPI 실습 매뉴얼](docs/Flyway-OpenAPI-DB연동-실습-매뉴얼.md)
+- 제품 요구사항과 사용자 흐름: [FAQ 검색 사이트 기획안](docs/faq-search-site-plan.md)
+- DB 구조 및 마이그레이션 기준: [DB 스키마 설계안](docs/DB-스키마-설계-초안.md)
+- FAQ 작성·정리 원칙: [FAQ 자료 정리와 DB 구축 기준](docs/FAQ-자료-정리와-DB-구축-기준.md)
+- 상세 로드맵: [DB 연결 전 준비와 작업 로드맵](docs/DB-연결-전-준비와-집에서-진행할-작업-로드맵.md)
