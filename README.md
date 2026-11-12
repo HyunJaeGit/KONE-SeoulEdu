@@ -14,9 +14,9 @@ K-ONE SeoulEdu는 로그인 기반 FAQ 검색 사이트다. 정적 프런트엔�
 - 검색 홈 대시보드와 최근 7일 조회 FAQ·최근 열람 항목·당일 조회 주제
 - 대분류·기간별 FAQ 통계 페이지
 - OpenAPI 명세와 Swagger UI
-- Flyway V1~V8 마이그레이션 파일
+- Flyway V1~V17 마이그레이션 파일
 
-프런트엔드는 `frontend/data/faq.json`을 API 대신 사용하지 않는다. 해당 파일은 이전 정적 시연 자료로 남아 있으며 실제 화면 데이터는 인증된 백엔드 API에서 가져온다. V7·V8의 DB 적용 여부는 각 개발 DB의 `flyway_schema_history`에서 확인한다.
+프런트엔드는 `frontend/data/faq.json`을 API 대신 사용하지 않는다. 해당 파일은 이전 정적 시연 자료로 남아 있으며 실제 화면 데이터는 인증된 백엔드 API에서 가져온다. 저장소에는 V1~V17 마이그레이션 파일이 있으며, 각 개발 DB의 적용 상태는 `flyway_schema_history`에서 확인한다.
 
 ## 주요 폴더
 
@@ -84,4 +84,6 @@ python -m http.server 5500
 - 제품 요구사항과 사용자 흐름: [FAQ 검색 사이트 기획안](docs/faq-search-site-plan.md)
 - DB 구조 및 마이그레이션 기준: [DB 스키마 설계안](docs/DB-스키마-설계-초안.md)
 - FAQ 작성·정리 원칙: [FAQ 자료 정리와 DB 구축 기준](docs/FAQ-자료-정리와-DB-구축-기준.md)
+- 현재 FAQ 데이터 작업 원본: [FAQ DB 통합 원본](docs/FAQ-DB-통합-원본.md)
+- 카테고리별 원문 범위와 추출 기록: [FAQ 카테고리별 검토 문서](docs/FAQ-카테고리별-원문-범위와-추출-검토.md)
 - 상세 로드맵: [DB 연결 전 준비와 작업 로드맵](docs/DB-연결-전-준비와-집에서-진행할-작업-로드맵.md)
