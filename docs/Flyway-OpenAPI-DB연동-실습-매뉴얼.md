@@ -304,7 +304,7 @@ DB 변경을 SQL 파일로 기록하고 로컬 DB에 순서대로 적용한다.
 
 - 통합 원본 39건 중 38건을 승인하고 1건(2024학년도 한시적 애플펜슬 지원)을 제외했다.
 - V4에서 참고 FAQ 331건을 추가해 UI에서 총 369건이 표시되는 상태까지 확장했다. 이 참고 FAQ 집합은 초기 승인 38건과 별도로 검토한다.
-- V7은 기존 양품화 FAQ를 보강하고 양품화 FAQ 12건을 추가한다. V8은 기존 유지보수 FAQ와 키워드를 보강하며, V9는 Android FAQ를 보강하고 V10은 ChromeOS FAQ를 분류·보완한다. V11은 iOS FAQ ID 188~214를 분류·보완하고 ID 188을 iOS로 바로잡는다. V12는 Windows FAQ ID 305~314와 ChromeOS Flex FAQ ID 315~326을, V13은 Whale FAQ ID 327~331을 분류·보완한다. V14는 DBS FAQ ID 123~133과 MDM FAQ ID 134~156을 `시스템·관리` topic으로 분류·보완한다. V15는 이미 적재된 일반·운영 FAQ ID 36~122의 topic·제목 및 일부 본문을 정리한다. V8~V15는 FAQ 행을 추가하거나 삭제하지 않는다. 각 개발 DB의 적용은 `flyway_schema_history`에서 확인한다.
+- V7은 기존 양품화 FAQ를 보강하고 양품화 FAQ 12건을 추가한다. V8은 기존 유지보수 FAQ와 키워드를 보강하며, V9는 Android FAQ를 보강하고 V10은 ChromeOS FAQ를 분류·보완한다. V11은 iOS FAQ ID 188~214를 분류·보완하고 ID 188을 iOS로 바로잡는다. V12는 Windows FAQ ID 305~314와 ChromeOS Flex FAQ ID 315~326을, V13은 Whale FAQ ID 327~331을 분류·보완한다. V14는 DBS FAQ ID 123~133과 MDM FAQ ID 134~156을 `시스템·관리` topic으로 분류·보완한다. V15는 이미 적재된 일반·운영 FAQ ID 36~122의 topic·제목 및 일부 본문을 정리한다. V16은 기존 FAQ 6건의 본문을 목록 구조로 정리하고, V17은 기존 FAQ 4건의 양품화 수량·수리동의서·학교 예산 일괄 구매·유지보수 수리 견적 안내와 검색 키워드를 보완한다. V8~V17은 FAQ 행을 추가하거나 삭제하지 않는다. 각 개발 DB의 적용은 `flyway_schema_history`에서 확인한다.
 - 2027년 신규 펜슬 지급 안내에 신입생 기기 수와 양품화 대상 기기 수의 조건, iPad 호환펜 20%·그 외 OS 디벗 15% 기준안, 교육청 정책 미확정 상태를 반영했다.
 - 유지보수 안내는 문의 기기의 보급 연도 기준으로 적용하도록 정리했다.
 - Flyway V2 카테고리 입력을 애플리케이션 시작 로그에서 성공 확인했다.
@@ -487,12 +487,12 @@ Phase:
 - Phase 6 구현 상태: 프런트엔드 로그인과 FAQ 목록 표시를 브라우저에서 확인했다. 이후 UI에서 369건 검색 결과가 표시된 기록도 있다. 이는 화면 당시 상태이며 현재 DB의 최신 건수를 보증하지 않는다.
 - 프런트엔드와 서버 API 연결 및 홈 대시보드·통계 페이지가 구현됐다. 전체 화면 흐름·권한·집계 검증은 완료 기록이 없다.
 - FAQ 열람 누적 집계는 `faq_usage_stats`, 사용자·기간별 열람 기록은 V5 `faq_view_history`에서 관리한다.
-- V7~V15 SQL 파일은 저장소에 추가됐으며 실제 개발 DB 적용 여부는 확인 전이다. V9는 Android FAQ를 보강했고 V10은 ChromeOS FAQ ID 215~304를 갱신했다. V11은 iOS FAQ ID 188~214를 분류·보완하며 ID 188을 바로잡는다. V12는 Windows FAQ ID 305~314 및 ChromeOS Flex FAQ ID 315~326을, V13은 Whale FAQ ID 327~331을, V14는 DBS·MDM FAQ ID 123~156을, V15는 일반·운영 FAQ ID 36~122를 분류·보완한다.
+- V7~V17 SQL 파일은 저장소에 추가됐으며 실제 개발 DB 적용 여부는 확인 전이다. V9는 Android FAQ를 보강했고 V10은 ChromeOS FAQ ID 215~304를 갱신했다. V11은 iOS FAQ ID 188~214를 분류·보완하며 ID 188을 바로잡는다. V12는 Windows FAQ ID 305~314 및 ChromeOS Flex FAQ ID 315~326을, V13은 Whale FAQ ID 327~331을, V14는 DBS·MDM FAQ ID 123~156을, V15는 일반·운영 FAQ ID 36~122를 분류·보완하며, V16은 FAQ 6건의 본문 가독성을 높이고 V17은 기존 FAQ 4건과 검색 키워드를 보완한다.
 
 ### 미결정 항목
 
 - 실제 배포 환경·운영 DB·도메인
-- V7~V15 개발 DB 적용 여부와 FAQ 최종 건수
+- V7~V17 개발 DB 적용 여부와 FAQ 최종 건수
 - 대표 한국어 검색어·최근 검색 기록 동작 확인
 - Phase 6 전체 브라우저 회귀 검증과 상담원 권한 차단
 - 회사 PC에서 Docker Desktop 설치 가능 여부 및 로컬 비밀 설정 재구성
